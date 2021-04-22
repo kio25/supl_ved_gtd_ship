@@ -1,0 +1,589 @@
+object DataModule2: TDataModule2
+  OldCreateOrder = False
+  Left = 475
+  Top = 297
+  Height = 395
+  Width = 817
+  object OracleLogon1: TOracleLogon
+    Session = OracleSession1
+    Options = [ldAuto, ldDatabase, ldDatabaseList, ldLogonHistory, ldConnectAs]
+    HistoryIniFile = 'c:\history.ini'
+    Left = 696
+    Top = 24
+  end
+  object OracleSession1: TOracleSession
+    Left = 696
+    Top = 88
+  end
+  object ODS: TOracleDataSet
+    SQL.Strings = (
+      
+        'SELECT NVL(M.STATUS,0) STATUS ,NVL(M.OBJMAIN,0) DEPT ,NVL(M.OBJC' +
+        'ORR,0) OBJCORR,NVL( ENT.ENTNAMES,'#39#39') ENTNAMES,'
+      
+        '        NVL(M.SUPLREG,0) SUPLREG,M.REC#,NVL(M.DOCNO1,0) DOCNO1,M' +
+        '.DOCNO,M.DOCDATE,M.PROD# PROD#,NVL(M.QTYD,0) QTYD,'
+      
+        '                  NVL(M.QTY,0) QTY ,NVL(M.QTYB,0)QTYB ,NVL(M.PRI' +
+        'CE,0) PRICE,prodgr, prodnames,'
+      
+        '                  DECODE(NVL(M.QTYB,0),0,NVL(M.PRICE,0)*NVL(M.QT' +
+        'Y,0),NVL(M.PRICE,0)*NVL(M.QTYB,0)) SUM_M,d.shop'
+      
+        ',NVL(S.OPR#,0) OPR_S,S.OPRDATE,S.ACCT_DB,S.ACCT_CR,S.SUM SUM_S,m' +
+        '.cntr#,nvl(m.spcfreal,0) spcfreal, nvl(c.seller,0) seller,e.entn' +
+        'ame,prod.calc#,nvl(m.prodg,0) prodg'
+      ''
+      ''
+      
+        '             FROM MTRDOC M,PROD,ENT,MTRSUM S,contractz c ,ent e ' +
+        ',dept d'
+      '            WHERE M.PROD#=PROD.PROD#(+)'
+      '              AND M.OPRTYPE=1'
+      '              AND M.OPR# in (501)'
+      '              AND M.OBJCORR!=3734'
+      '              AND NVL(M.OBJCORR,0)=ENT.ENT#(+)'
+      'AND S.REC#(+)=M.REC# AND NVL(M.STATUS,0)=2'
+      
+        ' and m.cntr#=to_char(c.cntrz(+)) and c.dopcntr(+)=0  and c.selle' +
+        'r=e.ent#(+)'
+      'and NVL(M.OBJMAIN,0)<>110201'
+      ''
+      '')
+    QBEDefinition.QBEFieldDefs = {
+      040000001D00000007000000444F434441544501000000000005000000444F43
+      4E4F010000000000070000005355504C52454701000000000008000000454E54
+      4E414D4553010000000000060000005354415455530100000000000400000044
+      455054010000000000070000004F424A434F5252010000000000040000005245
+      432301000000000006000000444F434E4F310100000000000500000050524F44
+      2301000000000004000000515459440100000000000300000051545901000000
+      0000040000005154594201000000000005000000505249434501000000000005
+      00000053554D5F4D010000000000050000004F50525F53010000000000070000
+      004F50524441544501000000000007000000414343545F444201000000000007
+      000000414343545F43520100000000000500000053554D5F5301000000000006
+      00000050524F4447520100000000000900000050524F444E414D455301000000
+      000005000000434E54522301000000000008000000535043465245414C010000
+      0000000600000053454C4C455201000000000007000000454E544E414D450100
+      000000000500000043414C43230100000000000400000053484F500100000000
+      000500000050524F4447010000000000}
+    Cursor = crSQLWait
+    Session = OracleSession1
+    Left = 32
+    Top = 32
+    object ODSSTATUS: TFloatField
+      FieldName = 'STATUS'
+    end
+    object ODSDEPT: TFloatField
+      FieldName = 'DEPT'
+    end
+    object ODSOBJCORR: TFloatField
+      FieldName = 'OBJCORR'
+    end
+    object ODSENTNAMES: TStringField
+      FieldName = 'ENTNAMES'
+    end
+    object ODSSUPLREG: TFloatField
+      FieldName = 'SUPLREG'
+    end
+    object ODSREC: TIntegerField
+      FieldName = 'REC#'
+      Required = True
+    end
+    object ODSDOCNO1: TFloatField
+      FieldName = 'DOCNO1'
+    end
+    object ODSDOCNO: TIntegerField
+      FieldName = 'DOCNO'
+      Required = True
+    end
+    object ODSDOCDATE: TDateTimeField
+      FieldName = 'DOCDATE'
+      Required = True
+    end
+    object ODSPROD: TIntegerField
+      FieldName = 'PROD#'
+      Required = True
+    end
+    object ODSQTYD: TFloatField
+      FieldName = 'QTYD'
+    end
+    object ODSQTY: TFloatField
+      FieldName = 'QTY'
+    end
+    object ODSQTYB: TFloatField
+      FieldName = 'QTYB'
+    end
+    object ODSPRICE: TFloatField
+      FieldName = 'PRICE'
+    end
+    object ODSPRODGR: TIntegerField
+      FieldName = 'PRODGR'
+    end
+    object ODSPRODNAMES: TStringField
+      FieldName = 'PRODNAMES'
+    end
+    object ODSSUM_M: TFloatField
+      FieldName = 'SUM_M'
+    end
+    object ODSOPR_S: TFloatField
+      FieldName = 'OPR_S'
+    end
+    object ODSOPRDATE: TDateTimeField
+      FieldName = 'OPRDATE'
+    end
+    object ODSACCT_DB: TIntegerField
+      FieldName = 'ACCT_DB'
+    end
+    object ODSACCT_CR: TIntegerField
+      FieldName = 'ACCT_CR'
+    end
+    object ODSSUM_S: TFloatField
+      FieldName = 'SUM_S'
+    end
+    object ODSCNTR: TStringField
+      FieldName = 'CNTR#'
+      Size = 15
+    end
+    object ODSSPCFREAL: TFloatField
+      FieldName = 'SPCFREAL'
+    end
+    object ODSSELLER: TFloatField
+      FieldName = 'SELLER'
+    end
+    object ODSENTNAME: TStringField
+      FieldName = 'ENTNAME'
+      Size = 40
+    end
+    object ODSCALC: TIntegerField
+      FieldName = 'CALC#'
+    end
+    object ODSSHOP: TIntegerField
+      FieldName = 'SHOP'
+    end
+    object ODSPRODG: TFloatField
+      FieldName = 'PRODG'
+    end
+  end
+  object ODSdostup: TOracleDataSet
+    SQL.Strings = (
+      'SELECT EMPLOY.DEPT# dept,'
+      '        NVL(DEPT.SHOP,0) shop,'
+      '        NVL(DEPT.SECT,0) sect,'
+      '        nvl(e.deptlev,0) dl,'
+      '        e.userid us'
+      '         FROM   EMPLOY, DEPT,empaccs e'
+      '         WHERE  EMPLOY.EMP#  = :emp   '
+      
+        '              AND  e.userid='#39'W'#39'||to_char(EMPLOY.EMP#)  --//'#1090#1086#1083#1100#1082 +
+        #1086' '#1076#1083#1103' 52 '#1074#1077#1076#1086#1084#1086#1089#1090#1080' '#1076#1086#1073#1072#1074#1080#1083#1080' empaccs'
+      '              and nvl(e.tblid,'#39' '#39')='#39' '#39
+      '              and  EMPLOY.DEPT# = DEPT.DEPT#'
+      '')
+    Variables.Data = {0300000001000000040000003A454D50030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {
+      040000000500000004000000444550540100000000000400000053484F500100
+      00000000040000005345435401000000000002000000444C0100000000000200
+      00005553010000000000}
+    Session = OracleSession1
+    Left = 384
+    Top = 200
+    object ODSdostupDEPT: TIntegerField
+      FieldName = 'DEPT'
+      Required = True
+    end
+    object ODSdostupSHOP: TFloatField
+      FieldName = 'SHOP'
+    end
+    object ODSdostupSECT: TFloatField
+      FieldName = 'SECT'
+    end
+    object ODSdostupDL: TFloatField
+      FieldName = 'DL'
+    end
+    object ODSdostupUS: TStringField
+      FieldName = 'US'
+      Required = True
+      Size = 16
+    end
+  end
+  object ODS_ish: TOracleDataSet
+    SQL.Strings = (
+      
+        'SELECT NVL(M.STATUS,0) STATUS ,NVL(M.OBJMAIN,0) DEPT ,NVL(M.OBJC' +
+        'ORR,0) OBJCORR,NVL( ENT.ENTNAMES,'#39#39') ENTNAMES,'
+      
+        '        NVL(M.SUPLREG,0) SUPLREG,M.REC#,NVL(M.DOCNO1,0) DOCNO1,M' +
+        '.DOCNO,M.DOCDATE,M.PROD# PROD#,NVL(M.QTYD,0) QTYD,'
+      
+        '                  NVL(M.QTY,0) QTY ,NVL(M.QTYB,0)QTYB ,NVL(M.PRI' +
+        'CE,0) PRICE,prodgr, prodnames,'
+      
+        '                  DECODE(NVL(M.QTYB,0),0,NVL(M.PRICE,0)*NVL(M.QT' +
+        'Y,0),NVL(M.PRICE,0)*NVL(M.QTYB,0)) SUM_M,d.shop'
+      
+        ',NVL(S.OPR#,0) OPR_S,S.OPRDATE,S.ACCT_DB,S.ACCT_CR,S.SUM SUM_S,m' +
+        '.cntr#,nvl(m.spcfreal,0) spcfreal, nvl(c.seller,0) seller,e.entn' +
+        'ame,prod.calc#,nvl(m.prodg,0) prodg'
+      
+        '             FROM MTRDOC M,PROD,ENT,MTRSUM S,contractz c ,ent e ' +
+        ',dept d'
+      '            WHERE M.PROD#=PROD.PROD#(+)'
+      '              AND M.OPRTYPE=1'
+      '              AND M.OPR# in (501)'
+      '              AND M.OBJCORR!=3734'
+      '              AND NVL(M.OBJCORR,0)=ENT.ENT#(+)'
+      '              and m.objmain=d.dept# '
+      'AND S.REC#(+)=M.REC# AND NVL(M.STATUS,0)=2'
+      
+        ' and m.cntr#=to_char(c.cntrz(+)) and c.dopcntr(+)=0  and c.selle' +
+        'r=e.ent#(+)'
+      'and NVL(M.OBJMAIN,0)<>110201'
+      ''
+      '')
+    QBEDefinition.QBEFieldDefs = {
+      040000001600000007000000444F4344415445010000000000070000004F424A
+      434F525201000000000005000000444F434E4F01000000000006000000444F43
+      4E4F31010000000000070000004F505244415445010000000000060000005052
+      4F4447520100000000000500000050524F442301000000000004000000515459
+      4401000000000004000000515459420100000000000300000051545901000000
+      0000050000005052494345010000000000050000004F50525F53010000000000
+      07000000414343545F444201000000000007000000414343545F435201000000
+      0000040000005245432301000000000006000000535441545553010000000000
+      040000004445505401000000000008000000454E544E414D4553010000000000
+      070000005355504C5245470100000000000900000050524F444E414D45530100
+      000000000500000053554D5F4D0100000000000500000053554D5F5301000000
+      0000}
+    Cursor = crSQLWait
+    Session = OracleSession1
+    Left = 112
+    Top = 32
+    object FloatField1: TFloatField
+      FieldName = 'SHOP'
+    end
+    object FloatField2: TFloatField
+      FieldName = 'TBL1#'
+    end
+    object IntegerField1: TIntegerField
+      FieldName = 'OBJMAIN'
+      Required = True
+    end
+    object FloatField3: TFloatField
+      FieldName = 'SHOP1'
+    end
+    object IntegerField2: TIntegerField
+      FieldName = 'OPR#'
+      Required = True
+    end
+    object FloatField4: TFloatField
+      FieldName = 'EXPEND#'
+    end
+    object FloatField5: TFloatField
+      FieldName = 'OBJCORR'
+    end
+    object FloatField6: TFloatField
+      FieldName = 'OBJEXT'
+    end
+    object FloatField7: TFloatField
+      FieldName = 'OBJEXT2'
+    end
+    object IntegerField3: TIntegerField
+      FieldName = 'DOCNO'
+    end
+    object FloatField8: TFloatField
+      FieldName = 'DOCNO1'
+    end
+    object DateTimeField1: TDateTimeField
+      FieldName = 'DOCDATE'
+      Required = True
+    end
+    object IntegerField4: TIntegerField
+      FieldName = 'PRODGR'
+    end
+    object IntegerField5: TIntegerField
+      FieldName = 'PROD#'
+      Required = True
+    end
+    object FloatField9: TFloatField
+      FieldName = 'CALC#'
+    end
+    object StringField1: TStringField
+      FieldName = 'PRODNAME'
+      Size = 40
+    end
+    object StringField2: TStringField
+      FieldName = 'UNITNAME'
+      Size = 8
+    end
+    object FloatField10: TFloatField
+      FieldName = 'CARD#'
+    end
+    object StringField3: TStringField
+      FieldName = 'PLACE'
+      Size = 7
+    end
+    object FloatField11: TFloatField
+      FieldName = 'PRODG'
+    end
+    object FloatField12: TFloatField
+      FieldName = 'SECT'
+    end
+    object FloatField13: TFloatField
+      FieldName = 'QTYD'
+    end
+    object FloatField14: TFloatField
+      FieldName = 'QTYB'
+    end
+    object FloatField15: TFloatField
+      FieldName = 'QTY'
+    end
+    object FloatField16: TFloatField
+      FieldName = 'PRICE'
+    end
+    object FloatField17: TFloatField
+      FieldName = 'OPR_S'
+    end
+    object FloatField18: TFloatField
+      FieldName = 'PACKET'
+    end
+    object DateTimeField2: TDateTimeField
+      FieldName = 'OPRDATE'
+      Required = True
+    end
+    object FloatField19: TFloatField
+      FieldName = 'ACCT_DB'
+    end
+    object IntegerField6: TIntegerField
+      FieldName = 'ACCT_CR'
+      Required = True
+    end
+    object FloatField20: TFloatField
+      FieldName = 'SUM'
+      Required = True
+    end
+    object IntegerField7: TIntegerField
+      FieldName = 'REC#'
+    end
+    object ODS_ishSTATUS: TFloatField
+      FieldName = 'STATUS'
+    end
+    object ODS_ishDEPT: TFloatField
+      FieldName = 'DEPT'
+    end
+    object ODS_ishENTNAMES: TStringField
+      FieldName = 'ENTNAMES'
+    end
+    object ODS_ishSUPLREG: TFloatField
+      FieldName = 'SUPLREG'
+    end
+    object ODS_ishPRODNAMES: TStringField
+      FieldName = 'PRODNAMES'
+    end
+    object ODS_ishSUM_M: TFloatField
+      FieldName = 'SUM_M'
+    end
+    object ODS_ishSUM_S: TFloatField
+      FieldName = 'SUM_S'
+    end
+  end
+  object ODs_prodgr: TOracleDataSet
+    SQL.Strings = (
+      'SELECT TBLNAME FROM PRODTBL WHERE TBLID=:tblid AND TBL#=:tbl')
+    Variables.Data = {
+      0300000002000000040000003A54424C03000000000000000000000006000000
+      3A54424C4944050000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {04000000010000000700000054424C4E414D45010000000000}
+    Session = OracleSession1
+    Left = 40
+    Top = 216
+    object ODs_prodgrTBLNAME: TStringField
+      FieldName = 'TBLNAME'
+      Required = True
+      Size = 40
+    end
+  end
+  object ODS_cnt: TOracleDataSet
+    SQL.Strings = (
+      'SELECT CNTNAME FROM COUNTRY WHERE CNT#=:cnt')
+    Variables.Data = {0300000001000000040000003A434E54030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {040000000100000007000000434E544E414D45010000000000}
+    Session = OracleSession1
+    Left = 120
+    Top = 224
+    object ODS_cntCNTNAME: TStringField
+      FieldName = 'CNTNAME'
+    end
+  end
+  object ODS_estm: TOracleDataSet
+    SQL.Strings = (
+      'SELECT ESTMNAME FROM ESTIMATE WHERE ESTM#=:estm')
+    Variables.Data = {0300000001000000050000003A4553544D030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {0400000001000000080000004553544D4E414D45010000000000}
+    Session = OracleSession1
+    Left = 40
+    Top = 152
+    object ODS_estmESTMNAME: TStringField
+      FieldName = 'ESTMNAME'
+      Required = True
+      Size = 40
+    end
+  end
+  object ODS_ent: TOracleDataSet
+    SQL.Strings = (
+      'SELECT ENTNAME FROM ENT WHERE ENT#=:ent')
+    Variables.Data = {0300000001000000040000003A454E54030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {040000000100000007000000454E544E414D45010000000000}
+    Session = OracleSession1
+    Left = 120
+    Top = 160
+    object ODS_entENTNAME: TStringField
+      FieldName = 'ENTNAME'
+      Required = True
+      Size = 40
+    end
+  end
+  object ODS_SUPLDOC: TOracleDataSet
+    SQL.Strings = (
+      
+        '          SELECT s.FACTDATE,s.SUPLDOC,s.TRANSNO,NVL(s.LOT#,0) LO' +
+        'T,s.QTYBD,s.QTY,s.QTYB,s.QTYD,s.CNTR#,nvl(s.spcfreal,0) spcfreal' +
+        ', nvl(c.seller,0) seller,e.entname'
+      '            FROM SUPLDOC s,contractz c ,ent e'
+      '           WHERE REC#=:rec'
+      
+        '           and s.cntr#=to_char(c.cntrz(+)) and c.dopcntr(+)=0  a' +
+        'nd c.seller=e.ent#(+)'
+      '           ORDER BY TRANSNO,SUPLDOC')
+    Variables.Data = {0300000001000000040000003A524543030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {
+      040000000C000000080000004641435444415445010000000000070000005355
+      504C444F43010000000000070000005452414E534E4F01000000000003000000
+      4C4F540100000000000500000051545942440100000000000300000051545901
+      0000000000040000005154594201000000000004000000515459440100000000
+      0005000000434E54522301000000000008000000535043465245414C01000000
+      00000600000053454C4C455201000000000007000000454E544E414D45010000
+      000000}
+    Cursor = crHourGlass
+    Session = OracleSession1
+    Left = 200
+    Top = 152
+    object ODS_SUPLDOCFACTDATE: TDateTimeField
+      FieldName = 'FACTDATE'
+    end
+    object ODS_SUPLDOCSUPLDOC: TStringField
+      FieldName = 'SUPLDOC'
+      Required = True
+      Size = 15
+    end
+    object ODS_SUPLDOCTRANSNO: TStringField
+      FieldName = 'TRANSNO'
+      Required = True
+      Size = 15
+    end
+    object ODS_SUPLDOCLOT: TFloatField
+      FieldName = 'LOT'
+    end
+    object ODS_SUPLDOCQTYBD: TFloatField
+      FieldName = 'QTYBD'
+    end
+    object ODS_SUPLDOCQTY: TFloatField
+      FieldName = 'QTY'
+      Required = True
+    end
+    object ODS_SUPLDOCQTYB: TFloatField
+      FieldName = 'QTYB'
+    end
+    object ODS_SUPLDOCQTYD: TFloatField
+      FieldName = 'QTYD'
+      Required = True
+    end
+    object ODS_SUPLDOCCNTR: TStringField
+      FieldName = 'CNTR#'
+      Size = 15
+    end
+    object ODS_SUPLDOCSPCFREAL: TFloatField
+      FieldName = 'SPCFREAL'
+    end
+    object ODS_SUPLDOCSELLER: TFloatField
+      FieldName = 'SELLER'
+    end
+    object ODS_SUPLDOCENTNAME: TStringField
+      FieldName = 'ENTNAME'
+      Size = 40
+    end
+  end
+  object ODS_mtrsum: TOracleDataSet
+    SQL.Strings = (
+      
+        '          SELECT NVL(OPR#,0) opr,OPRDATE,ACCT_DB,ACCT_CR,SUM sum' +
+        '_s'
+      '            FROM MTRSUM'
+      '           WHERE REC#=:rec'
+      '           ORDER BY OPR#')
+    Variables.Data = {0300000001000000040000003A524543030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {
+      0400000005000000030000004F5052010000000000070000004F505244415445
+      01000000000007000000414343545F444201000000000007000000414343545F
+      43520100000000000500000053554D5F53010000000000}
+    Cursor = crHourGlass
+    Session = OracleSession1
+    Left = 304
+    Top = 144
+    object ODS_mtrsumOPR: TFloatField
+      FieldName = 'OPR'
+    end
+    object ODS_mtrsumOPRDATE: TDateTimeField
+      FieldName = 'OPRDATE'
+      Required = True
+    end
+    object ODS_mtrsumACCT_DB: TIntegerField
+      FieldName = 'ACCT_DB'
+      Required = True
+    end
+    object ODS_mtrsumACCT_CR: TIntegerField
+      FieldName = 'ACCT_CR'
+      Required = True
+    end
+    object ODS_mtrsumSUM_S: TFloatField
+      FieldName = 'SUM_S'
+      Required = True
+    end
+  end
+  object ODS_uz: TOracleDataSet
+    SQL.Strings = (
+      
+        'select distinct t.cntrz,t.spcfreal,nvl(c.seller,0) seller,e.entn' +
+        'ame'
+      ' from coach_s.coachuz t,supldoc s ,contractz c ,ent e '
+      ''
+      
+        ' where s.docno=:docno and s.supldoc=t.supldoc and s.transno=t.tr' +
+        'ansno'
+      ' and t.cntrz is not null and t.spcfreal is not null '
+      
+        ' and t.cntrz=c.cntrz(+) and c.dopcntr(+)=0  and c.seller=e.ent#(' +
+        '+)'
+      '')
+    Variables.Data = {0300000001000000060000003A444F434E4F030000000000000000000000}
+    QBEDefinition.QBEFieldDefs = {
+      040000000400000005000000434E54525A010000000000080000005350434652
+      45414C0100000000000600000053454C4C455201000000000007000000454E54
+      4E414D45010000000000}
+    Cursor = crHourGlass
+    Session = OracleSession1
+    Left = 563
+    Top = 201
+    object ODS_uzCNTRZ: TIntegerField
+      FieldName = 'CNTRZ'
+    end
+    object ODS_uzSPCFREAL: TIntegerField
+      FieldName = 'SPCFREAL'
+    end
+    object ODS_uzSELLER: TFloatField
+      FieldName = 'SELLER'
+    end
+    object ODS_uzENTNAME: TStringField
+      FieldName = 'ENTNAME'
+      Size = 40
+    end
+  end
+end

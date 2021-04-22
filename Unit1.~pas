@@ -1,0 +1,382 @@
+unit unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Oracle, DB, OracleData, ComCtrls,StrUtils, ExtCtrls,DateUtils,
+  CheckLst, Grids;
+   const //razmas=60;
+       ShortDateFormat='dd.mm.yyyy';   nsg=7; //кол-во полей для генератора
+type
+  TForm1 = class(TForm)
+    ProgressBar1: TProgressBar;
+    Button1: TButton;
+    StaticText1: TStaticText;
+    Label5: TLabel;
+    StaticText2: TStaticText;
+    StaticText3: TStaticText;
+    Label4: TLabel;
+    DateTimePicker1: TDateTimePicker;
+    DateTimePicker2: TDateTimePicker;
+    Label2: TLabel;
+    SG: TStringGrid;
+    CheckBox1: TCheckBox;
+    RadioGroup1: TRadioGroup;
+    Label1: TLabel;
+    DateTimePicker3: TDateTimePicker;
+     procedure FormCreate(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure DateTimePicker1Change(Sender: TObject);
+{ //   procedure CheckBox1Click(Sender: TObject);
+    procedure CheckBox2Click(Sender: TObject);
+    procedure CheckBox3Click(Sender: TObject);
+    procedure CheckBox4Click(Sender: TObject);
+    procedure CheckBox5Click(Sender: TObject);
+    procedure CheckBox6Click(Sender: TObject);
+ }   function or1:boolean;
+
+    procedure EditKeyPress(Sender: TObject; var Key: Char);
+    procedure ClearForm;
+
+    procedure SGKeyPress(Sender: TObject; var Key: Char);
+    procedure SGDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
+      State: TGridDrawState);
+    procedure SGSelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
+
+
+
+
+
+
+
+
+  private
+    { Private declarations }
+  public
+
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+  year, month,day : word;
+  datemin,datemax,datena,dateplmin,dateplmax,date_01 :   TDateTime;
+  pr_zap,tzr :integer;
+  mas_sg: array [1..nsg,1..10] of string;
+
+implementation
+uses unit2;
+{$R *.dfm}
+
+
+
+ procedure TForm1.FormCreate(Sender: TObject);
+
+ var
+  i_np, i_HS,i,j : Integer;
+  prm, name, psw, HString : string;
+begin
+     prm := ParamStr(1);
+  i_np := Pos('/', prm);
+  i_HS := Pos('@', prm);
+   // есть имя/пароль из ком. строки ? (name/psw@HString)
+  if Length(prm) <> 0 then begin
+    if (i_np = 0) or (i_HS = 0) then begin
+     Application.MessageBox('Неверно переданы параметры подключения к БД.' ,
+                            'Ошибка', MB_OK + MB_ICONERROR);
+     Halt;
+    end;
+    name :=    LeftStr(prm, i_np - 1);
+    psw  :=    MidStr(prm,  i_np + 1, i_HS - i_np - 1);
+    HString := RightStr(prm, Length(prm) - i_HS );
+    DataModule2.OracleSession1.LogonDatabase := HString;
+    DataModule2.OracleSession1.LogonPassword  := psw;
+    DataModule2.OracleSession1.LogonUsername:= name;
+    DataModule2.OracleSession1.Connected := true;
+
+    if not DataModule2.OracleSession1.Connected then Halt;
+    end
+   else begin
+         DataModule2.OracleLogon1.Execute;
+         if not DataModule2.OracleSession1.Connected  then Halt;
+   end;
+
+
+ DecodeDate(Date, Year, Month, Day);
+ DateTimePicker1.Date:= EncodeDate(year, month, 1);
+ DateTimePicker2.Date:= now; // EndOfAMonth(year, month);
+ DateTimePicker3.Date:=now;
+
+
+ for i:=1 to nsg  do
+   for j:=1 to 10  do
+     mas_sg[1,1]:='';
+
+
+ mas_sg[1,1]:='Цех'; mas_sg[1,2]:='d.shop'; mas_sg[1,3]:='999';
+ mas_sg[1,4]:=' за цехом ';  mas_sg[1,5]:='shop';
+
+
+ mas_sg[2,1]:='Підрозділ'; mas_sg[2,2]:='NVL(OBJMAIN,0)'; mas_sg[2,3]:='999999';
+ mas_sg[2,4]:=' за підрозділом ';  mas_sg[2,5]:='DEPT';
+
+ mas_sg[3,1]:='Група материалу'; mas_sg[3,2]:='NVL(PRODGR,0)'; mas_sg[3,3]:='99';
+ mas_sg[3,4]:=' за групою матеріалу '; mas_sg[3,5]:='PRODGR';
+
+ mas_sg[4,1]:='Номенклатурний номер'; mas_sg[4,2]:='M.PROD#'; mas_sg[4,3]:='99999999';
+ mas_sg[4,4]:='за номенклатурним номером '; mas_sg[4,5]:='PROD#';
+
+// mas_sg[4,1]:='Статус'; mas_sg[4,2]:='NVL(STATUS,0)'; mas_sg[4,3]:='99'; mas_sg[4,4]:=' за статусом';
+// mas_sg[4,5]:='STATUS';
+
+ //mas_sg[4,1]:='Код постачальника '; mas_sg[4,2]:='nvl(c.seller,0)'; mas_sg[4,3]:='999999';
+// mas_sg[4,4]:='за кодом постачальника '; mas_sg[4,5]:='SELLER';
+
+
+
+ mas_sg[5,1]:='Код грузовідправника '; mas_sg[5,2]:='NVL(OBJCORR,0)'; mas_sg[5,3]:='999999';
+ mas_sg[5,4]:='за кодом грузовідправника '; mas_sg[5,5]:='OBJCORR';
+
+
+
+
+ mas_sg[6,1]:='ДБ рахунка/субрахунка'; mas_sg[6,2]:='S.ACCT_DB'; mas_sg[6,3]:='99999';
+ mas_sg[6,4]:='за ДБ рахунку/субрахунку '; mas_sg[6,5]:='ACCT_DB';
+
+ mas_sg[7,1]:='КР рахунка/субрахунка'; mas_sg[7,2]:='S.ACCT_CR'; mas_sg[7,3]:='99999';
+ mas_sg[7,4]:='за КР рахунку/субрахунку  '; mas_sg[7,5]:='ACCT_CR';
+
+
+ sg.RowCount:=nsg+1;
+
+ for i:=1 to nsg do
+  begin sg.cells[0,i]:=mas_sg[i,1];
+        sg.cells[1,i]:=inttostr(i);  //сортировка
+  end;
+  sg.cells[1,0]:='Сорт.';   sg.cells[2,0]:='Min значення';  sg.cells[3,0]:='Max значення';
+  sg.cells[4,0]:='+/-';   sg.cells[5,0]:='Список значень'; sg.cells[6,0]:='*-підсумок';
+
+  {if length(trim(datamodule2.dostup_shop))<>0
+    then  begin sg.Cells[5,4]:=datamodule2.dostup_shop;
+
+          end;
+   }
+          sg.FixedRows:=1;
+
+
+
+
+
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+
+begin
+ datemin:=DateTimePicker1.Date;
+ datemax:=DateTimePicker2.Date;
+
+  DecodeDate(DateTimePicker3.Date, Year, Month, Day);
+ date_01:=EncodeDate(year, month, 1);;
+
+
+ pr_zap:=0;
+  if  or1
+    then begin
+
+
+
+  DataModule2.raschet;
+  ProgressBar1.Max;
+  if pr_zap=0
+   then  ShowMessage('Розрахунок закінчений')
+   else  showmessage('Немає даних за запитом.');
+        end
+    else ShowMessage('Перевірте порядок сортування');
+   ClearForm;
+   ProgressBar1.Min;
+end;
+
+
+procedure TForm1.DateTimePicker1Change(Sender: TObject);
+begin
+ //DecodeDate(DateTimePicker1.Date, Year, Month, Day);
+ //DateTimePicker2.Date:= EndOfAMonth(year, month);
+
+end;
+
+
+
+  function  TForm1.or1:Boolean;
+  var  mas : array [0..nsg] of integer;
+       k,k1: integer;
+begin
+    for k:=1 to nsg do
+      if length(trim(form1.sg.cells[1,k]))<>0
+          then  mas[k]:=strtoint(trim(form1.sg.cells[1,k]))
+          else  begin   mas[k]:=0;
+                        form1.sg.cells[1,k]:='0';
+                end;
+    or1:=true;
+    form1.sg.Repaint;
+     for k:=1 to nsg do
+     if mas[k]>0
+       then   for k1:=1 to nsg do
+                 if (k<>k1) and (mas[k]=mas[k1])
+                    then or1:=false;
+
+
+
+ end;
+
+
+
+procedure TForm1.EditKeyPress(Sender: TObject; var Key: Char);
+begin   //ввод только цифр
+   if not(Key in ['0'..'9']) then Key:= #0;
+end;
+
+
+procedure TForm1.ClearForm;
+ //var  year, month,day : word;
+begin
+     with Form1 do begin
+      Form1.ProgressBar1.Min;
+      Form1.StaticText1.Caption:='';
+      Form1.StaticText2.Caption:='000000';
+      Form1.StaticText3.Caption:='000000';
+     end;
+end;
+
+
+
+
+
+
+
+
+
+
+{
+procedure TForm1.SGEnter(Sender: TObject);
+  var col,row :integer;
+begin
+   Col := form1.sg.col;
+   Row:=form1.sg.col;
+
+   if  form1.SG.Col=6
+     then begin
+           form1.SG.Col:=1;
+          if row+1<nsg
+            then form1.SG.Row:=row+1
+            else form1.SG.Row:=1;
+          end;
+//   Grid.Col := Col;
+//  Grid.Row := Row;
+
+
+end;
+  }
+procedure TForm1.SGKeyPress(Sender: TObject; var Key: Char);
+  var col,row :integer;
+begin
+   Col := form1.sg.col;
+   Row:=form1.sg.row;
+
+  {
+     if (col=4) and (length(trim(sg.cells[col,row]))<>0) and
+        ((sg.cells[col,row]='+') or (sg.cells[col,row]='-'))
+          then begin form1.SG.Col:=col+1; exit; end;
+
+     if (col=4) and ((length(trim(sg.cells[col,row]))<>0) and (not (key in ['+','-',' '])))
+
+       then  begin showmessage('Введите ''+'', ''-'' или ''пробел''');
+                    sg.cells[col,row]:='';
+                    exit;
+                    end;
+
+   }
+
+
+  /// переход по Entery между ячейками stringgrid
+ if (ord(key)=13)
+  then begin
+   if  form1.SG.Col=6
+     then begin
+           form1.SG.Col:=1;
+          if row+1<nsg
+            then form1.SG.Row:=row+1
+            else form1.SG.Row:=1;
+          end
+      else begin
+          form1.SG.Col:=col+1;
+           end;
+       end;
+  ///
+
+
+
+
+
+end;
+
+procedure TForm1.SGDrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+  var  i_:integer;
+begin
+  {
+  if length(trim(datamodule2.dostup_shop))<>0
+    then  begin
+                   SG.Canvas.Brush.Color:=clScrollBar;
+
+   for i_:=1 to 5 do
+     if (ACol = i_) and (ARow = 4)
+     then  SG.Canvas.FillRect(Rect);
+
+
+         end;}
+{  SG.Canvas.Brush.Color:=clScrollBar;
+       if (ACol = 2) and (ARow = 6)
+     then  SG.Canvas.FillRect(Rect);
+
+     if (ACol = 3) and (ARow = 6)
+     then  SG.Canvas.FillRect(Rect);
+
+
+     if (ACol = 2) and (ARow = 13)
+     then  SG.Canvas.FillRect(Rect);
+
+     if (ACol = 3) and (ARow = 13)
+     then  SG.Canvas.FillRect(Rect);
+
+ }
+end;
+
+procedure TForm1.SGSelectCell(Sender: TObject; ACol, ARow: Integer;
+  var CanSelect: Boolean);
+  var  i_:integer;
+begin
+  {   if length(trim(datamodule2.dostup_shop))<>0
+    then
+   for i_:=2 to 5 do
+     if (ACol = i_) and (ARow = 4)
+     then  CanSelect:= False;
+
+
+     if (ACol = 2) and (ARow = 6)
+     then  CanSelect:= False;
+
+     if (ACol = 3) and (ARow = 6)
+     then  CanSelect:= False;
+
+
+     if (ACol = 2) and (ARow = 13)
+     then  CanSelect:= False;
+
+     if (ACol = 3) and (ARow = 13)
+     then  CanSelect:= False;
+   }
+end;
+
+end.

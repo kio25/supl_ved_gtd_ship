@@ -1,0 +1,1213 @@
+unit Unit2;
+
+interface
+
+uses
+  SysUtils, Classes, Oracle, DB, OracleData,Windows,Dialogs ,
+  Messages,  Variants,  Controls, Math,  Forms,
+  StdCtrls,  ComCtrls ,ComObj;
+ const razmas=60;
+       ShortDateFormat='dd.mm.yyyy'; nsg=7; //кол-во полей для генератора
+       kol_p=10; //кол-во суммируемых  полей
+type
+  TDataModule2 = class(TDataModule)
+    OracleLogon1: TOracleLogon;
+    OracleSession1: TOracleSession;
+    ODS: TOracleDataSet;
+    ODSdostup: TOracleDataSet;
+    ODSdostupDEPT: TIntegerField;
+    ODSdostupSHOP: TFloatField;
+    ODSdostupSECT: TFloatField;
+    ODS_ish: TOracleDataSet;
+    FloatField1: TFloatField;
+    FloatField2: TFloatField;
+    IntegerField1: TIntegerField;
+    FloatField3: TFloatField;
+    IntegerField2: TIntegerField;
+    FloatField4: TFloatField;
+    FloatField5: TFloatField;
+    FloatField6: TFloatField;
+    FloatField7: TFloatField;
+    IntegerField3: TIntegerField;
+    FloatField8: TFloatField;
+    DateTimeField1: TDateTimeField;
+    IntegerField4: TIntegerField;
+    IntegerField5: TIntegerField;
+    FloatField9: TFloatField;
+    StringField1: TStringField;
+    StringField2: TStringField;
+    FloatField10: TFloatField;
+    StringField3: TStringField;
+    FloatField11: TFloatField;
+    FloatField12: TFloatField;
+    FloatField13: TFloatField;
+    FloatField14: TFloatField;
+    FloatField15: TFloatField;
+    FloatField16: TFloatField;
+    FloatField17: TFloatField;
+    FloatField18: TFloatField;
+    DateTimeField2: TDateTimeField;
+    FloatField19: TFloatField;
+    IntegerField6: TIntegerField;
+    FloatField20: TFloatField;
+    IntegerField7: TIntegerField;
+    ODs_prodgr: TOracleDataSet;
+    ODS_cnt: TOracleDataSet;
+    ODSdostupDL: TFloatField;
+    ODSdostupUS: TStringField;
+    ODS_estm: TOracleDataSet;
+    ODS_ent: TOracleDataSet;
+    ODS_entENTNAME: TStringField;
+    ODs_prodgrTBLNAME: TStringField;
+    ODS_estmESTMNAME: TStringField;
+    ODS_cntCNTNAME: TStringField;
+    ODS_SUPLDOC: TOracleDataSet;
+    ODS_mtrsum: TOracleDataSet;
+    ODS_mtrsumOPR: TFloatField;
+    ODS_mtrsumOPRDATE: TDateTimeField;
+    ODS_mtrsumACCT_DB: TIntegerField;
+    ODS_mtrsumACCT_CR: TIntegerField;
+    ODS_mtrsumSUM_S: TFloatField;
+    ODS_ishSTATUS: TFloatField;
+    ODS_ishDEPT: TFloatField;
+    ODS_ishENTNAMES: TStringField;
+    ODS_ishSUPLREG: TFloatField;
+    ODS_ishPRODNAMES: TStringField;
+    ODS_ishSUM_M: TFloatField;
+    ODS_ishSUM_S: TFloatField;
+    ODSSTATUS: TFloatField;
+    ODSDEPT: TFloatField;
+    ODSOBJCORR: TFloatField;
+    ODSENTNAMES: TStringField;
+    ODSSUPLREG: TFloatField;
+    ODSREC: TIntegerField;
+    ODSDOCNO1: TFloatField;
+    ODSDOCNO: TIntegerField;
+    ODSDOCDATE: TDateTimeField;
+    ODSPROD: TIntegerField;
+    ODSQTYD: TFloatField;
+    ODSQTY: TFloatField;
+    ODSQTYB: TFloatField;
+    ODSPRICE: TFloatField;
+    ODSPRODGR: TIntegerField;
+    ODSPRODNAMES: TStringField;
+    ODSSUM_M: TFloatField;
+    ODSOPR_S: TFloatField;
+    ODSOPRDATE: TDateTimeField;
+    ODSACCT_DB: TIntegerField;
+    ODSACCT_CR: TIntegerField;
+    ODSSUM_S: TFloatField;
+    ODSCNTR: TStringField;
+    ODSSPCFREAL: TFloatField;
+    ODSSELLER: TFloatField;
+    ODSENTNAME: TStringField;
+    ODS_SUPLDOCFACTDATE: TDateTimeField;
+    ODS_SUPLDOCSUPLDOC: TStringField;
+    ODS_SUPLDOCTRANSNO: TStringField;
+    ODS_SUPLDOCLOT: TFloatField;
+    ODS_SUPLDOCQTYBD: TFloatField;
+    ODS_SUPLDOCQTY: TFloatField;
+    ODS_SUPLDOCQTYB: TFloatField;
+    ODS_SUPLDOCQTYD: TFloatField;
+    ODS_SUPLDOCCNTR: TStringField;
+    ODS_SUPLDOCSPCFREAL: TFloatField;
+    ODS_SUPLDOCSELLER: TFloatField;
+    ODS_SUPLDOCENTNAME: TStringField;
+    ODS_uz: TOracleDataSet;
+    ODSCALC: TIntegerField;
+    ODS_uzCNTRZ: TIntegerField;
+    ODS_uzSPCFREAL: TIntegerField;
+    ODS_uzSELLER: TFloatField;
+    ODS_uzENTNAME: TStringField;
+    ODSSHOP: TIntegerField;
+    ODSPRODG: TFloatField;
+
+
+  private
+     procedure setQuery;    //формирование запроса
+     procedure pech_dan;  //печать данных
+     procedure pech_dan_supldoc;   //печать данных
+     procedure pech_prom_it; //печать пром итогов
+     procedure pechnstr;
+     procedure pechnstrs;
+          procedure sum_it;
+     procedure   sum_it1;
+           procedure raschet1;
+  //   function nam_itog(name_pole:variant;zhach_pole:variant):string;
+   //  procedure pechshap;
+    { Private declarations }
+
+
+  public
+   procedure raschet;
+   function dostup_shop:string;
+
+
+
+    { Public declarations }
+     end;
+
+
+
+var
+  DataModule2: TDataModule2;
+   XLApp,Sheet,Colum,Row,Sheetp,Colump,Rowp,Sheets,Colums,Rows:Variant;
+   sum_p,sum_r,qty_p,qty_r,qtyb_p,qtyb_r,sumbeg,qtybeg,qtybbeg: real;
+   sumtot,sumtot1,sumtot2,sumtot3,sumtot4 :real;
+        k,l,index,OBJCORR_old,pr_old,pr_pech,indexp,indexs,rec_old: integer;
+   mas_order: array [1..nsg+1,1..4] of string;
+   mas_itog: array[1..nsg+1,1..kol_p+1] of variant;
+   sh_vib,name_s:string;
+    sumcr :real;
+
+
+
+implementation
+ uses unit1;
+
+{$R *.dfm}
+
+  function nam_itog(name_pole:variant;zhach_pole:variant):string;
+ begin
+
+  nam_itog:='';
+    if zhach_pole<>0 then begin
+
+
+  //   showmessage(name_pole);
+
+
+//-------------
+        if name_pole='DEPT' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('TBLID','STORE');
+             datamodule2.ODs_prodgr.SetVariable('TBL',zhach_pole);
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+
+        if (name_pole='OBJCORR') or  ((name_pole='SELLER')) then
+       begin
+                datamodule2.ODs_ent.Close;
+             datamodule2.ODs_ent.SetVariable('ent',zhach_pole);
+             datamodule2.ODs_ent.Open;
+             if datamodule2.ODs_ent.RecordCount<>0
+                then  nam_itog:=datamodule2.ODS_entEnTNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_ent.Close;
+       end;
+
+
+         if name_pole='PRODGR' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('TBLID','SUPLTYPE');
+             datamodule2.ODs_prodgr.SetVariable('TBL',zhach_pole);
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+        if name_pole='KPLAT' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('tbl',zhach_pole);
+             datamodule2.ODs_prodgr.SetVariable('tblid','PMTYPE_B');
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+        if name_pole='TBL1' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('tbl',zhach_pole);
+             datamodule2.ODs_prodgr.SetVariable('tblid','PMTYPE_P');
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+        if name_pole='DLVRTYPE' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('tbl',zhach_pole);
+             datamodule2.ODs_prodgr.SetVariable('tblid','DLVRTYPE');
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+
+        if name_pole='SUPLTYPE' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('tbl',zhach_pole);
+             datamodule2.ODs_prodgr.SetVariable('tblid','SUPLTYPE');
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+       if name_pole='DOCTYPE' then
+       begin
+
+             datamodule2.ODs_prodgr.Close;
+             datamodule2.ODs_prodgr.SetVariable('tbl',zhach_pole);
+             datamodule2.ODs_prodgr.SetVariable('tblid','DOCUM');
+             datamodule2.ODs_prodgr.Open;
+             if datamodule2.ODs_prodgr.RecordCount<>0
+                then  nam_itog:=datamodule2.ODs_prodgrTBLNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_prodgr.Close;
+
+       end;
+
+ if name_pole='CNT' then
+       begin
+
+             datamodule2.ODs_CNT.Close;
+             datamodule2.ODs_CNT.SetVariable('CNT',zhach_pole);
+
+             datamodule2.ODs_CNT.Open;
+             if datamodule2.ODs_CNT.RecordCount<>0
+                then  nam_itog:=datamodule2.ODS_cntCNTNAME.AsString
+                else  nam_itog:=' ';
+                         datamodule2.ODs_cnt.Close;
+
+       end;
+
+
+
+
+      if name_pole='STATUS' then    begin
+
+           if zhach_pole=1 then  nam_itog:=' зареєстровані та знаходяться на комплектації';
+           if zhach_pole=3 then  nam_itog:=' знаходяться на комплектації по вагонам';
+           if zhach_pole=4 then  nam_itog:=' акцептовані та частково сплачені';
+           if zhach_pole=5 then  nam_itog:=' частково сплачені';
+      end;
+
+     end;
+   //  if length(trim(result))=0 then nam_itog:='';
+   //  showmessage(result);
+
+ end;
+
+
+
+
+function TDataModule2.dostup_shop:string; // допуск к цеху
+ //если цеховой допуск то добавляем в запрос номер цеха
+  var id:integer;
+
+   begin
+     Result:='';
+     if UpperCase(copy(trim(DataModule2.OracleSession1.LogonUsername),1,1))='W'
+        then  begin //цеховой доступ
+                  Datamodule2.ODSdostup.SetVariable('emp',Strtoint(copy(trim(DataModule2.OracleSession1.LogonUsername),2,5)));
+                  Datamodule2.ODSdostup.Open;
+                  Datamodule2.ODSdostup.First;
+                    if Datamodule2.ODSdostup.RecordCount<>0
+                      then begin
+                         // for id:=1 to Datamodule2.ODSdostup.RecordCount do
+                         //     begin
+                            if Datamodule2.ODSdostupDL.asinteger<>0  //если  в empaccs не заводской доступ deptlev=0
+                                then Result:=Datamodule2.ODSdostup.FieldByName('shop').AsString;
+
+                         //      Datamodule2.ODSdostup.NExt;
+                         //      end;
+                          end; //if ODSdostup.RecordCount<>0
+                   Datamodule2.ODSdostup.Close;
+               end; //цеховой доступ
+
+           if UpperCase(copy(trim(DataModule2.OracleSession1.LogonUsername),1,1))='Z'
+              then  Result:=''; //заводской доступ
+
+   end;
+
+
+   procedure TDataModule2.raschet1;
+
+   var j,j1,j12,pr0,i :integer;
+
+    begin
+
+
+
+
+       setQuery;    //формирование запроса
+
+   end;
+
+
+  procedure TDataModule2.raschet;
+
+   var j,j1,j12,pr0,i :integer;
+
+    begin
+
+
+
+
+       setQuery;    //формирование запроса
+  ods.Close;
+ // ODs.SetVariable('datemin',datetostr(datemin));
+ // ODS.SetVariable('datemax',datetostr(datemax));
+
+  ODS.Open;
+  ODS.First;
+
+  pr_pech:=0;
+
+  if ODS.RecordCount<>0
+  then begin
+         form1.ProgressBar1.Max := ODS.RecordCount;
+         Form1.StaticText2.Caption:='0';
+         Form1.StaticText2.Repaint;
+         Form1.StaticText3.Caption:=Inttostr(ODS.RecordCount);
+         Form1.StaticText3.Repaint;
+
+       XLApp:=CreateOleObject('Excel.Application');
+       XlApp.Workbooks.Add(ExtractFilePath(ParamStr(0))+'suplr11.xls');
+
+
+       Colum:=XLApp.Workbooks[1].WorkSheets[1].Columns;
+       Row:=XLApp.Workbooks[1].WorkSheets[1].Rows;
+       Sheet:=XLApp.Workbooks[1].WorkSheets[1];
+
+
+    // XLApp.Visible:=true;
+
+       k:=13 ;// счетчик сторок в Excel
+       l:=11 ;//счетчик строк на листе
+        for j:=1 to nsg+1 do
+          begin
+           for j1:=2 to kol_p do mas_itog[j,j1]:=0  ;
+           mas_itog[j,kol_p+1]:=0; //обнуления признака печати итоговой строчки
+         end;
+        for j:=1 to nsg do//wnto 1 do
+        //  if (length(trim(mas_order[j,4]))<>0) and (mas_order[j,3]='1')
+        //     then mas_itog[j,1]:=ODS.FieldByName(mas_order[j,4]).asvariant;   // значения по которым накапливаем суммы
+           begin
+          if (mas_order[j,3]='1')
+             then mas_itog[j,1]:=ODS.FieldByName(mas_order[j,4]).asvariant;   // значения по которым накапливаем суммы
+           end;
+
+       Sheet.Cells[3,4]:='за період з '+datetostr(datemin)+' по '+datetostr(datemax)+' на дату '+datetostr(form1.DateTimePicker3.date);
+        DecodeDate(form1.DateTimePicker3.date, Year, Month, Day);
+       Sheet.Cells[7,29]:='на  '+datetostr(EncodeDate(year, month, 1));
+        if sh_vib<>''
+          then begin    Sheet.Cells[4,4]:='Селективна вибірка';
+                         Sheet.Cells[5,4]:=sh_vib;
+
+
+                end;
+     // pechshap;
+        index:=10;
+
+
+                  rec_old:=0;
+
+          for i:=1 to ODS.RecordCount do
+            begin
+         Form1.StaticText2.Caption:=inttostr(i);
+         Form1.StaticText2.Repaint;
+         Form1.ProgressBar1.StepIt;
+
+
+
+         if  (rec_old<>datamodule2.ODSREC.AsInteger) and (rec_old<>0)
+          then  pech_dan_supldoc;
+
+          pech_prom_it;
+          sum_it;
+          pech_dan;
+
+
+         rec_old:=datamodule2.ODSREC.AsInteger;
+         ods.Next;
+         Application.ProcessMessages;
+         form1.StaticText2.Caption:=inttostr(i);
+              end ;//          for i:=1 to ODS.RecordCount do
+
+
+    //последнии итоги  и строки по SUPLDOC
+
+           pech_dan_supldoc;
+
+
+
+                       for i:=nsg downto 1 do
+                          begin
+
+                      if  (mas_order[i,3]='1')
+                       then begin
+
+                     Sheet.Rows[index].Font.Bold := True;
+
+                     Sheet.Cells[index,1]:=mas_order[i,2]+VarAsType(mas_itog[i,1],$0100)+' '+nam_itog(mas_order[i,4],mas_itog[i,1])  ;
+
+                     if  mas_itog[i,2]<>0 then  Sheet.Cells[index,16]:=mas_itog[i,2];
+                     if  mas_itog[i,3]<>0 then  Sheet.Cells[index,17]:=mas_itog[i,3];
+                     if  mas_itog[i,4]<>0 then  Sheet.Cells[index,18]:=mas_itog[i,4];
+                     if  mas_itog[i,5]<>0 then  Sheet.Cells[index,19]:=mas_itog[i,5];
+                     if  mas_itog[i,7]<>0 then  Sheet.Cells[index,26]:=mas_itog[i,7];
+                      if  mas_itog[i,6]<>0 then  Sheet.Cells[index,21]:=mas_itog[i,6];
+
+                     if  mas_itog[i,8]<>0 then  Sheet.Cells[index,27]:=mas_itog[i,8];
+                     if  mas_itog[i,9]<>0 then  Sheet.Cells[index,28]:=mas_itog[i,9];
+                     if  mas_itog[i,10]<>0 then  Sheet.Cells[index,29]:=mas_itog[i,10];
+                     if  mas_itog[i,11]<>0 then  Sheet.Cells[index,30]:=mas_itog[i,11];
+
+
+                     inc(index);   pechnstr;
+
+                          end;
+                          end;
+
+                     Sheet.Rows[index].Font.Bold := True;
+                     Sheet.Cells[index,1]:='Всього за відомістю ';
+
+                     if  mas_itog[nsg+1,2]<>0 then  Sheet.Cells[index,16]:=mas_itog[nsg+1,2];
+                     if  mas_itog[nsg+1,3]<>0 then  Sheet.Cells[index,17]:=mas_itog[nsg+1,3];
+                     if  mas_itog[nsg+1,4]<>0 then  Sheet.Cells[index,18]:=mas_itog[nsg+1,4];
+                     if  mas_itog[nsg+1,5]<>0 then  Sheet.Cells[index,19]:=mas_itog[nsg+1,5];
+                     if  mas_itog[nsg+1,7]<>0 then  Sheet.Cells[index,26]:=mas_itog[nsg+1,7];
+                      if  mas_itog[nsg+1,6]<>0 then  Sheet.Cells[index,21]:=mas_itog[nsg+1,6];
+
+                      if  mas_itog[nsg+1,8]<>0 then  Sheet.Cells[index,27]:=mas_itog[nsg+1,8];
+                     if  mas_itog[nsg+1,9]<>0 then  Sheet.Cells[index,28]:=mas_itog[nsg+1,9];
+                     if  mas_itog[nsg+1,10]<>0 then  Sheet.Cells[index,29]:=mas_itog[nsg+1,10];
+                     if  mas_itog[nsg+1,11]<>0 then  Sheet.Cells[index,30]:=mas_itog[nsg+1,11];
+
+
+
+
+
+                     inc(index);    inc(indexp);    inc(indexs);
+
+
+
+
+        pr_zap:=0;
+
+       if not form1.CheckBox1.Checked then
+         begin
+           Sheet.Columns[13].Hidden:= True;
+           Sheet.Columns[14].Hidden:= True;
+            Sheet.Columns[15].Hidden:= True;
+         end;
+       XLApp.Visible:=true;
+
+            end    //    if ODS.RecordCount<>0 then
+        else pr_zap:=1;
+   end;
+
+
+
+ procedure TDataModule2.pech_dan_supldoc;
+    var j_ : integer;
+
+
+   begin
+           datamodule2.ODs_SUPLDOC.Close;
+
+             datamodule2.ODs_SUPLDOC.SetVariable('rec',rec_old);
+
+             datamodule2.ODs_SUPLDOC.Open;
+             if datamodule2.ODs_SUPLDOC.RecordCount<>0
+                then  begin         datamodule2.ODs_SUPLDOC.First;
+                 for j_:=1 to  datamodule2.ODs_SUPLDOC.RecordCount  do
+                                  begin
+                                      if form1.CheckBox1.Checked then begin
+                                     // Sheet.Cells[index,11]:=datamodule2.ODS_SUPLDOCFACTDATE.AsVariant;
+                                      Sheet.Cells[index,13]:=datamodule2.ODS_SUPLDOCSUPLDOC.AsVariant;
+                                      Sheet.Cells[index,14]:=datamodule2.ODS_SUPLDOCTRANSNO.AsVariant;
+                                      if datamodule2.ODS_SUPLDOCLOT.AsInteger<>0 then
+                                      Sheet.Cells[index,15]:=datamodule2.ODS_SUPLDOCLOT.AsInteger;
+                                      if datamodule2.ODS_SUPLDOCQTYD.AsFloat<>0 then
+                                      Sheet.Cells[index,16]:=datamodule2.ODS_SUPLDOCQTYD.asfloat;
+                                      if datamodule2.ODS_SUPLDOCQTYbd.AsFloat<>0 then
+                                      Sheet.Cells[index,17]:=datamodule2.ODS_SUPLDOCQTYbd.asfloat;
+                                      if datamodule2.ODS_SUPLDOCQTY.AsFloat<>0 then
+                                      Sheet.Cells[index,18]:=datamodule2.ODS_SUPLDOCQTY.asfloat;
+                                      if datamodule2.ODS_SUPLDOCQTYb.AsFloat<>0 then
+                                      Sheet.Cells[index,19]:=datamodule2.ODS_SUPLDOCQTYb.asfloat;
+
+                                      {Sheet.Cells[index,6]:=datamodule2.ODS_SUPLDOCCNTR.Value;
+                                      if datamodule2.ODS_SUPLDOCSPCFREAL.AsInteger<>0 then
+                                      Sheet.Cells[index,7]:=datamodule2.ODS_SUPLDOCSPCFREAL.Value;
+                                      if datamodule2.ODS_SUPLDOCSELLER.AsInteger<>0 then
+                                      Sheet.Cells[index,4]:=datamodule2.ODS_SUPLDOCSELLER.Value;
+                                      Sheet.Cells[index,5]:=datamodule2.ODS_SUPLDOCentname.Value;
+                                       }
+
+
+
+                                      inc(index);
+
+
+
+
+                                      end;
+                                      sum_it1;
+                                      datamodule2.ODs_SUPLDOC.Next;
+
+                                  end;
+                      end;
+           datamodule2.ODS_SUPLDOC.Close;
+           if form1.CheckBox1.Checked then inc(index);
+           pechnstr  ;
+
+
+end;
+
+
+
+ procedure TDataModule2.pech_dan;
+
+
+  begin
+
+
+
+         if  rec_old<>datamodule2.ODSREC.AsInteger
+       then begin
+
+
+
+//     if (trim(form1.sg.cells[1,4])<>'0') then  begin
+//     Sheet.Cells[index,1]:=datamodule2.ODSSTATUS.AsInteger;
+//     end;
+
+ if form1.CheckBox1.Checked then   begin
+       XLApp.Range[Sheet.Cells[index,1], Sheet.Cells[index,30]].Select;
+       XLApp.Selection.Borders[8].Weight:=2;
+       XLApp.Selection.Borders[8].LineStyle:=1;
+                                   end;
+
+
+     if (trim(form1.sg.cells[1,1])<>'0') then begin
+
+     Sheet.Cells[index,1]:=datamodule2.ODSdept.AsInteger;
+                                                           end;
+
+
+             if (trim(form1.sg.cells[1,4])<>'0') then begin
+     Sheet.Cells[index,2]:=datamodule2.ODSOBJCORR.AsInteger;
+     Sheet.Cells[index,3]:=datamodule2.ODSENTNAMES.AsString;
+
+                                                        end;
+
+   //   Sheet.Cells[index,4]:=datamodule2.ODSSUPLREG.AsInteger;
+      if datamodule2.ODSDOCNO1.AsInteger<>0 then
+      Sheet.Cells[index,8]:=datamodule2.ODSDOCNO1.AsVariant;
+      Sheet.Cells[index,9]:=datamodule2.ODSDOCNO.AsVariant;
+      Sheet.Cells[index,10]:=datamodule2.ODSDOCDATE.AsVariant;
+
+
+
+      if (trim(form1.sg.cells[1,3])<>'0') then
+          begin Sheet.Cells[index,11]:=datamodule2.ODSPROD.AsInteger;
+                Sheet.Cells[index,12]:=datamodule2.ODSPRODNAMES.AsString;
+          end;
+      IF datamodule2.ODSQTYD.AsFloat<>0 THEN
+           Sheet.Cells[index,16]:=datamodule2.ODSQTYD.AsFloat;
+      IF datamodule2.ODSQTY.AsFloat<>0 THEN
+                 Sheet.Cells[index,18]:=datamodule2.ODSQTY.AsFloat;
+      IF datamodule2.ODSQTYB.AsFloat<>0 THEN
+           Sheet.Cells[index,19]:=datamodule2.ODSQTYB.AsFloat;
+      IF datamodule2.ODSPRICE.AsFloat<>0 THEN
+           Sheet.Cells[index,20]:=datamodule2.ODSPRICE.AsFloat;
+      IF datamodule2.ODSSUM_M.AsFloat<>0 THEN
+           Sheet.Cells[index,21]:=datamodule2.ODSSUM_s.AsFloat;//datamodule2.ODSSUM_M.AsFloat;
+
+         rec_old:=datamodule2.ODSREC.AsInteger;
+
+           end;  //              if  rec_old<>datamodule2.ODSREC.AsInteger
+
+
+                       Sheet.Cells[index,22]:=datamodule2.ODsoPR_s.AsInteger;
+                       Sheet.Cells[index,23]:=DATAMODULE2.ODsOPRDATE.AsVariant;
+                       Sheet.Cells[index,24]:=DATAMODULE2.ODsACCT_DB.AsInteger;
+                       Sheet.Cells[index,25]:=DATAMODULE2.ODsACCT_cr.AsInteger;
+
+          if LENGTH(TRIM(datamodule2.ODSCNTR.AsString))<>0 then
+            begin
+        Sheet.Cells[index,6]:=datamodule2.ODSCNTR.Value;
+         if datamodule2.ODSSPCFREAL.AsInteger<>0 then
+        Sheet.Cells[index,7]:=datamodule2.ODSSPCFREAL.Value;
+         if datamodule2.ODSSELLER.AsInteger<>0 then
+        Sheet.Cells[index,4]:=datamodule2.ODSSELLER.Value;
+
+        Sheet.Cells[index,5]:=datamodule2.ODSentname.Value;
+            end
+
+            else begin
+
+                if (datamodule2.ODSCALC.AsInteger=607) or (datamodule2.ODSCALC.AsInteger=611) or
+                   (datamodule2.ODSCALC.AsInteger=627) or (datamodule2.ODSCALC.AsInteger=614)
+
+                  then begin
+
+                      datamodule2.ods_uz.Close;
+                      datamodule2.ods_uz.SetVariable('docno',datamodule2.odsdocno.AsInteger);
+                      datamodule2.ods_uz.open;
+                      if datamodule2.ODS_uz.RecordCount=1
+                         then begin
+                                  Sheet.Cells[index,6]:='* '+datamodule2.ODS_uzCNTRz.asstring;
+                                  Sheet.Cells[index,7]:=datamodule2.ODS_uzSPCFREAL.Value;
+                                  Sheet.Cells[index,4]:=datamodule2.ODS_uzSELLER.Value;
+                                  Sheet.Cells[index,5]:=datamodule2.ODS_uzentname.Value;
+
+                         end;
+                     datamodule2.ods_uz.Close;
+                        end;
+            end;
+
+
+                       IF datamodule2.ODsSUM_S.AsFloat<>0 THEN
+                            Sheet.Cells[index,26]:=DATAMODULE2.ODsSUM_S.AsFloat;
+
+          if int(datamodule2.ODSACCT_CR.AsInteger/10)=631 // Украина
+              then begin
+                    Sheet.Cells[index,27]:=DATAMODULE2.ODsSUM_S.AsFloat*0.2;
+                    Sheet.Cells[index,28]:=DATAMODULE2.ODsSUM_S.AsFloat*0.2+DATAMODULE2.ODsSUM_S.AsFloat;
+
+                     if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(date_01))
+                    then Sheet.Cells[index,29]:=datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+
+
+                  if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(form1.DateTimePicker3.Date))-20
+                    then Sheet.Cells[index,30]:=datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+              end
+
+              else begin
+
+                     Sheet.Cells[index,28]:=datamodule2.ODSSUM_s.AsFloat;
+
+                    if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(date_01))
+                    then Sheet.Cells[index,29]:=datamodule2.ODSSUM_s.AsFloat;
+
+
+
+                  if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(form1.DateTimePicker3.Date))-20
+                    then Sheet.Cells[index,30]:=datamodule2.ODSSUM_s.AsFloat;
+
+
+
+
+              end;
+
+
+             if odsprodg.Value<>0
+                then Sheet.Cells[index,31]:= odsprodg.Value;
+
+                               inc(index);//inc(indexs);
+                             pechnstr  ;
+
+
+
+
+
+
+
+
+  end;
+
+
+
+        procedure TDataModule2.sum_it;
+  var ip : integer;
+
+  begin
+
+
+
+
+     for ip:=1 to nsg do
+         begin
+           if length(trim(mas_itog[ip,1]))<>0
+             then   begin
+
+                 mas_itog[ip,6]:=mas_itog[ip,6]+datamodule2.ODSSUM_s.AsFloat;//mas_itog[ip,6]+datamodule2.ODSSUM_M.AsFloat;
+                 mas_itog[ip,7]:=mas_itog[ip,7]+datamodule2.ODSSUM_s.AsFloat;
+
+
+          if int(datamodule2.ODSACCT_CR.AsInteger/10)=631 // Украина
+              then begin
+
+                 mas_itog[ip,8]:=mas_itog[ip,8]+datamodule2.ODSSUM_s.AsFloat*0.2;
+                 mas_itog[ip,9]:=mas_itog[ip,9]+datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+                 if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(date_01))
+                    then mas_itog[ip,10]:=mas_itog[ip,10]+datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+
+
+                  if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(form1.DateTimePicker3.Date))-20
+                    then mas_itog[ip,11]:=mas_itog[ip,11]+datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+
+
+                    end
+             else
+               begin
+                    if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(date_01))
+                    then
+                      mas_itog[ip,10]:=mas_itog[ip,10]+datamodule2.ODSSUM_s.AsFloat;
+
+                    mas_itog[ip,9]:=mas_itog[ip,9]+datamodule2.ODSSUM_s.AsFloat;
+
+                  if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(form1.DateTimePicker3.Date))-20
+                    then mas_itog[ip,11]:=mas_itog[ip,11]+datamodule2.ODSSUM_s.AsFloat;
+
+
+
+               end;
+
+
+
+
+         end;
+      end;
+
+
+
+        //  mas_itog[nsg+1,6]:=mas_itog[nsg+1,6]+datamodule2.ODSSUM_M.AsFloat ;
+          mas_itog[nsg+1,6]:=mas_itog[nsg+1,6]+datamodule2.ODSSUM_s.AsFloat ;
+          mas_itog[nsg+1,7]:=mas_itog[nsg+1,7]+datamodule2.ODSSUM_S.AsFloat;
+
+
+
+          
+          if int(datamodule2.ODSACCT_CR.AsInteger/10)=631 // Украина
+              then begin
+
+
+
+          mas_itog[nsg+1,8]:=mas_itog[nsg+1,8]+datamodule2.ODSSUM_s.AsFloat*0.2;
+          mas_itog[nsg+1,9]:=mas_itog[nsg+1,9]+datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+           if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(date_01))
+                    then mas_itog[nsg+1,10]:=mas_itog[nsg+1,10]+datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+
+
+           if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(form1.DateTimePicker3.date))-20
+                    then mas_itog[nsg+1,11]:=mas_itog[nsg+1,11]+datamodule2.ODSSUM_s.AsFloat*0.2+datamodule2.ODSSUM_s.AsFloat;
+
+         end
+         else
+           begin
+
+               if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(date_01))
+                    then mas_itog[nsg+1,10]:=mas_itog[nsg+1,10]+datamodule2.ODSSUM_s.AsFloat;
+
+                mas_itog[nsg+1,9]:=mas_itog[nsg+1,9]+datamodule2.ODSSUM_s.AsFloat;
+
+           if strtodate(datetostr(datamodule2.ODSDOCDATE.Value))<strtodate(datetostr(form1.DateTimePicker3.date))-20
+                    then mas_itog[nsg+1,11]:=mas_itog[nsg+1,11]+datamodule2.ODSSUM_s.AsFloat;
+
+
+
+
+
+
+           end;
+
+
+
+  end;
+
+
+  /////////
+
+          procedure TDataModule2.sum_it1;
+  var ip : integer;
+
+  begin
+
+
+
+
+     for ip:=1 to nsg do
+         begin
+           if length(trim(mas_itog[ip,1]))<>0
+             then   begin
+                 mas_itog[ip,2]:=mas_itog[ip,2]+datamodule2.ODS_SUPLDOCQTYD.AsFloat ;
+                 mas_itog[ip,3]:=mas_itog[ip,3]+datamodule2.ODS_SUPLDOCQTYBD.AsFloat;
+                 mas_itog[ip,4]:=mas_itog[ip,4]+datamodule2.ODS_SUPLDOCQTY.AsFloat;
+                 mas_itog[ip,5]:=mas_itog[ip,5]+datamodule2.ODS_SUPLDOCQTYB.AsFloat ;
+
+
+         end;   end;
+
+
+
+          mas_itog[nsg+1,2]:=mas_itog[nsg+1,2]+datamodule2.ODS_SUPLDOCQTYD.AsFloat ;
+          mas_itog[nsg+1,3]:=mas_itog[nsg+1,3]+datamodule2.ODS_SUPLDOCQTYBD.AsFloat;
+          mas_itog[nsg+1,4]:=mas_itog[nsg+1,4]+datamodule2.ODS_SUPLDOCQTY.AsFloat;
+          mas_itog[nsg+1,5]:=mas_itog[nsg+1,5]+datamodule2.ODS_SUPLDOCQTYB.AsFloat;
+
+
+
+
+  end;
+
+
+
+
+
+ procedure TDataModule2.setQuery;    //формирование запроса
+
+   var select_z,  from_z,where_z,group_z,order_z,s1,where_z1,where_z2: String ;
+       myFile:TextFile; i,j:integer;
+       Strings: TStrings;
+
+ begin
+   sh_vib:='';
+ for i:=1 to nsg do
+   for j:=1 to 3 do
+      mas_order[i ,j]:='';
+
+
+      if form1.RadioGroup1.ItemIndex=0
+       then
+ where_z2:=' and  ( M.docdate BETWEEN TO_DATE('''+datetostr(datemin)+''',''DD.MM.YYYY'') AND TO_DATE('''+datetostr(datemax)+''',''DD.MM.YYYY'')) ';
+
+       if form1.RadioGroup1.ItemIndex=1
+       then
+ where_z2:=' and  ( M.oprdate BETWEEN TO_DATE('''+datetostr(datemin)+''',''DD.MM.YYYY'') AND TO_DATE('''+datetostr(datemax)+''',''DD.MM.YYYY'')) ';
+
+
+      order_z:=' ORDER BY ';
+
+
+
+
+ for i:=1 to nsg do
+  begin
+
+          where_z1:='';
+          if (Length(trim(Form1.sg.Cells[2,i]))<>0) or (Length(trim(Form1.sg.Cells[3,i]))<>0)
+          then  begin     //1
+                if Length(trim(Form1.sg.Cells[2,i]))<>0
+                   then  begin where_z1:=where_z1+' AND ('+mas_sg[i,2]+' BETWEEN '+trim(Form1.sg.Cells[2,i]);
+                                   sh_vib:=sh_vib+mas_sg[i,4]+' з '+trim(Form1.sg.Cells[2,i]);
+                         end
+                   else   begin where_z1:=where_z1+' AND ('+mas_sg[i,2]+' BETWEEN 0 ';
+                                sh_vib:=sh_vib+mas_sg[i,4]+' з 0 '
+                           end;
+
+                if Length(trim(Form1.sg.Cells[3,i]))<>0
+                   then  begin where_z1:=where_z1+' AND '+trim(form1.sg.Cells[3,i]);
+                                sh_vib:=sh_vib+' по '+trim(Form1.sg.Cells[3,i]);
+                         end
+                   else  begin where_z1:=where_z1+' AND '+mas_sg[i,3];
+                                sh_vib:=sh_vib+' по '+mas_sg[i,3];
+                          end;
+
+
+
+         if ((Length(trim(Form1.sg.Cells[4,i]))=0) or (trim(Form1.sg.Cells[4,i])='+')) and (Length(trim(Form1.sg.Cells[5,i]))<>0)
+                    //then //если + или ничего
+                       //   if Length(trim(Form1.sg.Cells[5,i]))<>0
+                             then begin where_z1:=where_z1+' OR '+mas_sg[i,2]+' in ('+trim(Form1.sg.Cells[5,i])+')';
+                                        sh_vib:=sh_vib+' ,з переліку ' +trim(Form1.sg.Cells[5,i]);
+                                  end;
+                          //   else where_z1:=where_z1+')';
+
+
+                if (trim(Form1.sg.Cells[4,i])='-') and (Length(trim(Form1.sg.Cells[5,i]))<>0)
+                   // then //если -
+
+                     //     if Length(trim(Form1.sg.Cells[5,i]))<>0
+                             then begin where_z1:=where_z1+' AND '+mas_sg[i,2]+' NOT in ('+trim(Form1.sg.Cells[5,i])+')' ;
+                                          sh_vib:=sh_vib+' ,вилучаючи з переліку ' +trim(Form1.sg.Cells[5,i]);
+                                  end;
+                            // else where_z1:=where_z1+')'
+
+                                 end;     //1
+
+
+
+
+          if (Length(trim(Form1.sg.Cells[2,i]))=0) and (Length(trim(Form1.sg.Cells[3,i]))=0)
+          then  begin     //1
+
+         if ((Length(trim(Form1.sg.Cells[4,i]))=0) or (trim(Form1.sg.Cells[4,i])='+')) and (Length(trim(Form1.sg.Cells[5,i]))<>0)
+                    //then //если + или ничего
+                       //   if Length(trim(Form1.sg.Cells[5,i]))<>0
+                             then begin where_z1:=where_z1+' AND ( '+mas_sg[i,2]+' in ('+trim(Form1.sg.Cells[5,i])+')';
+                                        sh_vib:=sh_vib+mas_sg[i,4]+ ' з переліку ' +trim(Form1.sg.Cells[5,i]);
+                                  end;
+                          //   else where_z1:=where_z1+')';
+
+
+                if (trim(Form1.sg.Cells[4,i])='-') and (Length(trim(Form1.sg.Cells[5,i]))<>0)
+                   // then //если -
+
+                     //     if Length(trim(Form1.sg.Cells[5,i]))<>0
+                             then begin where_z1:=where_z1+' AND ( '+mas_sg[i,2]+' NOT in ('+trim(Form1.sg.Cells[5,i])+')' ;
+                                        sh_vib:=sh_vib+mas_sg[i,4]+ ' вилучаючи з переліку ' +trim(Form1.sg.Cells[5,i]);
+                                  end;
+                            // else where_z1:=where_z1+')'
+
+                                 end;     //1
+
+
+
+  if length(trim(where_z1))<>0
+    then where_z2:=where_z2+' '+where_z1+') ';
+
+
+   if strtoint(form1.sg.cells[1,i])<>0 then begin
+  mas_order[strtoint(form1.sg.cells[1,i]),1]:=mas_sg[i,2]; //сортировка
+  mas_order[strtoint(form1.sg.cells[1,i]),4]:=mas_sg[i,5]; //имена полей
+   //  end;
+
+
+  if length(trim(Form1.sg.cells[6,i]))<>0                             // итоги
+    then  begin mas_order[strtoint(form1.sg.cells[1,i]),3]:='1' ;
+                mas_order[strtoint(form1.sg.cells[1,i]),2]:='Всього '+mas_sg[i,4];
+           end
+    else  mas_order[strtoint(form1.sg.cells[1,i]),3]:='0';
+
+    end;
+
+  end; //  for i:=1 to nsg do
+
+
+
+
+       //    order_z:=' ORDER BY ';
+
+ for i:=1 to nsg do
+   begin
+     if mas_order[i,1]<>'' then order_z:=order_z+mas_order[i,1]+', ';
+     if mas_order[i,1]='M.PROD#' THEN order_z:=order_z+'M.DOCNO1,M.DOCNO,NVL(M.SUPLREG,0), ';
+   end;
+    order_z:=copy(order_z,1,Length(order_z)-2);
+
+
+   DataModule2.ODS.Close;
+   DataModule2.ODS.SQL.Clear;
+
+   Strings:=ODS_ish.SQL;
+    for i := 0 to Strings.Count - 1 do
+       DataModule2.ODS.SQL.Add(Strings.Strings[i] );
+
+   DataModule2.ODS.SQL.Add(where_z2);
+   DataModule2.ODS.SQL.Add(order_z);
+
+
+          {
+   //---------------------otladka
+  getdir(0,s1);
+//  AssignFile(myFile, trim(s1)+'\suplr52.lst');
+ AssignFile(myFile, 'd:\suplr52.lst');
+  ReWrite(myFile);
+  Strings:=ODS.SQL;
+    for i := 0 to Strings.Count - 1 do
+       writeln(myFile,Strings.Strings[i] );
+   close(myFile);
+//-------------------------otladka
+           }
+
+//if sh_vib='по ' then sh_vib:='';
+
+
+
+   end;
+ ////////////////////////////
+
+
+
+ procedure  TDataModule2.pech_prom_it;
+   var i,j,k:integer;
+  begin
+
+
+{     if (length(trim(mas_order[j,4]))<>0) and (mas_order[j,3]='1')
+             then mas_itog[j,1]:=ODS.FieldByName(mas_order[j,4]).asvariant;   // значения по которым накапливаем суммы
+ }
+
+   pr_pech:=0;
+       for i:=1 to nsg do
+        for j:=2 to  7 do
+          if mas_itog[i,j]<>0 then pr_pech:=1;
+
+
+
+  for j:=1 to nsg do
+   begin
+
+
+          if length(trim(mas_order[j,4]))<>0 then begin //в сортировке стоит для поля 0
+        if  (mas_itog[j,1]<>ODS.FieldByName(mas_order[j,4]).asvariant)
+            and (mas_order[j,3]='1') and (pr_pech=1)
+          then begin
+                    // печать всех пром итогов до этого по сортировке
+                       for i:=nsg downto j+1 do
+                          begin
+
+                      if  (mas_order[i,3]='1')
+                       then begin
+//                     Sheet.Cells[index,1]:=mas_order[i,2]+' '+inttostr(mas_itog[i,1]);
+                     Sheet.Rows[index].Font.Bold := True;
+
+
+                          Sheet.Cells[index,1]:=mas_order[i,2]+VarAsType(mas_itog[i,1],$0100)+' '+nam_itog(mas_order[i,4],mas_itog[i,1]);
+
+
+                              if  mas_itog[i,2]<>0 then  Sheet.Cells[index,16]:=mas_itog[i,2];
+                              if  mas_itog[i,3]<>0 then  Sheet.Cells[index,17]:=mas_itog[i,3];
+                              if  mas_itog[i,4]<>0 then  Sheet.Cells[index,18]:=mas_itog[i,4];
+                              if  mas_itog[i,5]<>0 then  Sheet.Cells[index,19]:=mas_itog[i,5];
+                              if  mas_itog[i,7]<>0 then  Sheet.Cells[index,26]:=mas_itog[i,7];
+                              if  mas_itog[i,6]<>0 then  Sheet.Cells[index,21]:=mas_itog[i,6];
+
+                              if  mas_itog[i,8]<>0 then  Sheet.Cells[index,27]:=mas_itog[i,8];
+                              if  mas_itog[i,9]<>0 then  Sheet.Cells[index,28]:=mas_itog[i,9];
+                              if  mas_itog[i,10]<>0 then  Sheet.Cells[index,29]:=mas_itog[i,10];
+                              if  mas_itog[i,11]<>0 then  Sheet.Cells[index,30]:=mas_itog[i,11];
+
+
+
+
+
+
+
+
+                         inc(index);  pechnstr  ;
+
+
+
+                       // обнуление напечатанной строки
+                              mas_itog[i,1]:=ODS.FieldByName(mas_order[i,4]).asvariant;
+                              for k:=2 to kol_p+1 do
+                                   mas_itog[i,k]:=0;
+
+                   {  mas_itog[i,2]:=0; mas_itog[i,3]:=0;
+                     mas_itog[i,4]:=0;mas_itog[i,4]:=0;
+                     mas_itog[i,6]:=0; mas_itog[i,7]:=0;
+                    }
+
+
+                           end;
+
+                          end;
+                      // печать пром итога
+
+                    Sheet.Rows[index].Font.Bold := True;
+                     Sheet.Cells[index,1]:=mas_order[j,2]+VarAsType(mas_itog[j,1],$0100)+' '+nam_itog(mas_order[j,4],mas_itog[j,1]); //VarAsType преобразование типа variant в string;
+                     if  mas_itog[j,2]<>0 then  Sheet.Cells[index,16]:=mas_itog[j,2];
+                     if  mas_itog[j,3]<>0 then  Sheet.Cells[index,17]:=mas_itog[j,3];
+                     if  mas_itog[j,4]<>0 then  Sheet.Cells[index,18]:=mas_itog[j,4];
+                     if  mas_itog[j,5]<>0 then  Sheet.Cells[index,19]:=mas_itog[j,5];
+                     if  mas_itog[j,7]<>0 then  Sheet.Cells[index,26]:=mas_itog[j,7];
+                     if  mas_itog[j,6]<>0 then  Sheet.Cells[index,21]:=mas_itog[j,6];
+
+                     if  mas_itog[j,8]<>0 then  Sheet.Cells[index,27]:=mas_itog[j,8];
+                     if  mas_itog[j,9]<>0 then  Sheet.Cells[index,28]:=mas_itog[j,9];
+                     if  mas_itog[j,10]<>0 then  Sheet.Cells[index,29]:=mas_itog[j,10];
+                     if  mas_itog[j,11]<>0 then  Sheet.Cells[index,30]:=mas_itog[j,11];
+
+
+
+
+
+                        inc(index); pechnstr  ;
+
+
+                       // обнуление напечатанной строки
+                     mas_itog[j,1]:=ODS.FieldByName(mas_order[j,4]).asvariant;
+                       for k:=2 to kol_p+1 do
+                                   mas_itog[j,k]:=0;
+                    { mas_itog[j,2]:=0; mas_itog[j,3]:=0;
+                     mas_itog[j,4]:=0; mas_itog[j,5]:=0;
+                     mas_itog[j,6]:=0; mas_itog[j,7]:=0;
+                     }
+               end;
+
+   end;
+        end; //   for
+
+       pr_pech:=0;
+       for i:=1 to nsg do
+        for j:=2 to  6 do
+          if mas_itog[i,j]<>0 then pr_pech:=1;
+
+
+  end;
+
+ procedure TDataModule2.pechnstr;
+   var i_page:integer;
+    begin
+
+{
+    if (index mod 55 =0)  then
+  begin  i_page:=1+index div 50;
+         Sheet.HPageBreaks.Add(Sheet.Rows[index]);
+         Sheet.Cells[index,18]:='Стр. '+inttostr(i_page);
+         inc(index);
+         XLApp.Workbooks[1].WorkSheets[1].Rows[9].Copy(Sheet.Rows[index]);
+         INC(INDEX);
+         XLApp.Workbooks[1].WorkSheets[1].Rows[10].Copy(Sheet.Rows[index]);
+         inc(index);
+
+     end;
+
+ }
+
+
+    end;
+
+ procedure TDataModule2.pechnstrs;
+   var i_pages:integer;
+    begin
+    {
+if indexs mod 73 =0  then
+  begin  i_pages:=1+indexs div 73;
+         Sheets.HPageBreaks.Add(Sheets.Rows[indexs]);
+         Sheets.Cells[indexs,25]:='Стр. '+inttostr(i_pages);
+         inc(indexs);
+         XLApp.Workbooks[1].WorkSheets[1].Rows[12].Copy(Sheets.Rows[indexs]);
+         inc(indexs);
+     end;}
+    end;
+
+
+ end.
+

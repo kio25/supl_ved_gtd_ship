@@ -1,0 +1,711 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+#include <time.h>
+#include <dos.h>
+#include <vcsys.h>
+#include <app.h>
+#include <oracle.h>
+
+char   REPFILE[31]="C:\\REPORT.LST";
+char   VIEWER [31]="LIST.COM";
+char   EDITOR [31]="QEDIT.EXE";
+
+void   infoStaffz(float);
+void   generalError(char *s);
+int    for_ras(void);
+int    zapPnl(void);
+int    raport(void);
+static int prodgrtst(TEXT *tmpfld);
+/* ---------------------------------------------------------------------------
+   Host - пеpеменные
+-----------------------------------------------------------------------------*/
+
+EXEC SQL WHENEVER SQLERROR GOTO errexit;
+
+EXEC SQL BEGIN DECLARE SECTION;
+
+     VARCHAR uid [40];
+     VARCHAR pwd [40];
+     extern  VARCHAR ERRTXT[1000];
+     char    *status11=" ";
+     char    *status22=" ";
+     char    *dept11  ="      ";
+     char    *prodgr11  ="  ";
+     char    *edatemin  ="dd/mm/yy";
+     char    *edatemax  ="dd/mm/yy";
+     char    *datemin   ="dd-mmm-yy";
+     char    *datemax   ="dd-mmm-yy";
+     char    *ecurdate  ="dd/mm/yy";
+     char    *elcurdate  ="dd/mm/yyyy";
+     long    status1,status2,dept1,prodgr1;
+     int     month;
+     int     year;
+     long    docno,docno1,prod,objmain,objcorr,rec;
+     long    suplreg,status;
+     long    opr,lot,lot_t[10];
+     char   *supldoc="..........";
+     char   *transno="..........";
+     char    supldocs_t[10][11];
+     char    transnos_t[10][11];
+     char    supldocs[11];
+     char    transnos[11];
+     double  qtybd,qtybd_t[10];
+     double  qtyv,qtyv_t[10];
+     double  qtybv,qtybv_t[10];
+     double  qtydv,qtydv_t[10];
+     double  qtyd,qty,qtyb;
+     double  price,sumDB;
+     double  sum;
+     long    acctdb,acctcr,tip;
+     char   *docdate="dd/mm/yy";
+     char   *oprdate="dd/mm/yy";
+     char   *factdate="dd/mm/yy";
+     char    docdates[9];
+     char    oprdates[9];
+     char    namegr[21];
+     char    factdates_t[10][9];
+EXEC SQL END   DECLARE SECTION;
+
+     FILE     *report;
+     int      flagPrint_Star=0;
+
+     time_t  tstart,tend;
+     size_t  HH,MM,SS;
+     size_t  linenum    = 0,         /* Номеp текущий номеp стpоки листа   */
+			  pagenum    = 1,         /* Номер текущей страницы             */
+			  pageform   = 12,        /* Фоpмат листа (в дюймах)            */
+			  pagedens   = 8,         /* Плотность печати (стpок/дюйм)      */
+			  stepprn    = 17,        /* Шаг печати                         */
+			  doubleprn  = 0,         /* двойной удаp  (1-установить,0-отменить) */
+			  pagesize   = 96,        /* Количество строк на листе          */
+			  footerSize = 16;        /* Интеpвал межстpаничной пpотяжки    */
+     int      calcflag   = 0;         /* Флажок записи выходной табулягpаммы*/
+     int      panelflag  = 0;         /* Флажок состояния панели ввода      */
+					char     msg[100];
+     int      logonFlag = 0;
+     int      connectFlag=0;
+     int      startFlag;
+     int      ret;
+     int      i;
+     int      breakLevel;
+     int      w1,wnd,statusWnd1;
+     int      day_ras,month_ras,year_ras,day,month,year;
+
+static char *forma[] = {
+/*00*/"┌─┬──────┬──────┬────────┬──────┬─────────┬────────┬─────────┬──────────┬──────────┬────┬───────────────────────────────────────────────────────────────────┬────────────────┬────────────────┬───┬────────┬─────┬─────┬────────────────┐",
+/*01*/"│С│Пўдро-│Код   │НомРег  │N     │Регўстр. │Дата до-│Номенкл. │Номер това│Номер     │Ном-│                К  Ў  Л  Ь  К  Ў  С  Т  Ь                          │     Цўна       │  Сума          │Ел.│Звўтна  │ ДБ  │ КР  │                │",
+/*02*/"│т│здўл  │поста-│рахунку │прибут│  N      │кументу │код мате-│ро-трансп.│транспорт.│ер  ├────────────────┬────────────────┬────────────────┬────────────────┤                │ в ДБ осн.      │опе│дата    │рах. │рах. │   С У М А      │",
+/*03*/"│а│скл./ │чаль- │поста-  │кового│прибутк. │        │рўалу    │накладно∙ │засобу    │пар-│по документу    │по документу    │по переваженню  │по переваженню  │                │ рахунку        │ра │елементу│/суб │/суб │                │",
+/*04*/"│т│госп. │ника  │чальника│докум.│документу│        │         │          │          │тў∙ │фўзична         │суха вага       │фўзична         │ суха вага      │                │ в нац.валютў   │цў∙│операцў∙│рах. │рах. │                │",
+/*05*/"├─┼──────┼──────┼────────┼──────┼─────────┼────────┼─────────┼──────────┼──────────┼────┼────────────────┼────────────────┼────────────────┼────────────────┼────────────────┼────────────────┼───┼────────┼─────┼─────┼────────────────┤",
+/*06*/"│1│  2   │  3   │   4    │  5   │    6    │   7    │    8    │    9     │    10    │ 11 │     12         │        13      │      14        │       15       │      16        │    17          │ 18│    19  │  20 │  21 │       22       │",
+/*07*/"└─┴──────┴──────┴────────┴──────┴─────────┴────────┴─────────┴──────────┴──────────┴────┴────────────────┴────────────────┴────────────────┴────────────────┴────────────────┴────────────────┴───┴────────┴─────┴─────┴────────────────┘",
+/*08*/"                                                                                         ──────────────── ──────────────── ──────────────── ────────────────                                                            ──────────────── ",
+/*09*/"                                                                                         ════════════════ ════════════════ ════════════════ ════════════════                                                            ════════════════ ",
+/*10*/" ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── "
+};
+
+
+int main (int   cnt,       /* cnt     - счетчик параметров командной строки */
+        char  *args[]){  /* args[i] - указатель на значение i-го параметра*/
+
+    char seps[2] = "/";               /* Разделитель имени/паpоля           */
+
+/* ---------------------------------------------------------------------------
+ Logon to ORACLE, and open the cursors. The program exits if any errors occur.
+-----------------------------------------------------------------------------*/
+
+  if (cnt == 2){                               // Разбоp командной стpоки
+     strcpy(uid.arr,strtok(args[1], seps));    // uid.arr - имя пользователя
+     strcpy(pwd.arr,strtok(NULL, seps));       // pwd.arr - паpоль пользователя
+  }  else return(0);
+
+  gotoxy(22,65);
+  printf("FreeMem = %3iK",(int)(freemem()/1000));
+
+  oraca.orastxtf = 3;                 /* Уpовень диагностики ошибок         */
+
+  /**************************************************************************/
+
+
+  raport();
+
+  printf("%c[0;37;40m",0x1b);
+}
+
+int raport()
+{
+     int      selectFlag = 0;
+
+  if ((report = fopen( REPFILE, "w+t")) == NULL) return(0);
+  if (!logon())   return(0);          // Установить связь с БД
+
+  pageform  = 12;                     // Фоpмат листа (в дюймах)
+  pagedens  =  8;                     // Плотность печати (стpок/дюйм)
+  stepprn   = 17;                     // Шаг печати
+  doubleprn  = 0;                     // двойной удаp  (1-установить,0-отменить)
+
+  printf("%c[1;33;44m",0x1B);                        /* Желтый на синем     */
+  panelflag = 1;
+
+  /* Внешний цикл запpоса. Панель паpаметpов задачи                         */
+  for(;;)
+  {
+    if (!zapPnl())   /* Запpос паpаметpов pасчета          */
+     { pcend();fclose(report);system("LIST C:\\report.lst"); return 0; }
+  }
+  /* -------------------------------------------------------------------------
+  Завеpшение pаботы с базой данных.
+  -----------------------------------------------------------------------------*/
+  fcloseall();
+  logout();                           // Разъединить связь с БД
+  return(0);
+}
+
+
+int for_ras()
+ {
+  char stroka[250];
+  int end_union;
+  int end_union1;
+  double summ_p=0.0,sumqbd_p=0.0;
+  double sumqb_p=0.0,sumqd_p=0.0,sumq_p=0.0;
+
+  double summ_sk=0.0,sumqbd_sk=0.0;
+  double sumqb_sk=0.0,sumqd_sk=0.0,sumq_sk=0.0;
+
+  double summ_pp=0.0,sumqbd_pp=0.0;
+  double sumqb_pp=0.0,sumqd_pp=0.0,sumq_pp=0.0;
+  long totInd;
+  long prod_old,objmain_old,fest_rec;
+  int  arrInd;
+  int  arrRecNum;
+  int  selectFlag=0;
+  status1=atol(status11);
+  status2=atol(status22);
+  dept1=atol(dept11);
+  prodgr1=atol(prodgr11);
+  time(&tstart);
+           if(edatecmp("31/12/2001",edatemin)>=0)  {
+                   sayerr("За данный период данных нет"); 
+                   return(0);
+                                                      }
+
+
+     fprintf(report,"M2G");
+     fprintf(report,"\t\t\t\tВ Ў Д О М Ў С Т Ь   НЕВЎДФАКТУРОВАНИХ П О С Т А Ч А Н Ь \n");
+     fprintf(report,"\t\t\t\tза перўод з %s по %s \n",edatemin,edatemax);
+     fprintf(report,"\t\t\t\tстатус    з %1.0lu  по  %1.0lu \n",status1,status2);
+     if(dept1==0)
+      fprintf(report,"\t\t\t\tпо усўм пўдроздўлам \n");
+     else
+     fprintf(report,"\t\t\t\tпўдроздўл %6.0lu \n",dept1);
+
+     fprintf(report,"\t\t\t\t( Сировина ) \n\n");
+     fprintf(report,"H\n");
+     for(i=0;i<8;i++)
+      { fprintf(report,"%s\n",forma[i]); }
+
+ EXEC SQL DECLARE CUR_MDOC CURSOR FOR
+           SELECT NVL(STATUS,0),OBJMAIN,NVL(OBJCORR,0),NVL(SUPLREG,0),
+                  REC#,NVL(DOCNO1,0),DOCNO,
+                  TO_CHAR(DOCDATE,'dd/mm/rr'),MTRDOC.PROD#,NVL(QTYD,0.0),
+                  NVL(QTY,0.0),NVL(QTYB,0.0),NVL(PRICE,0.0),
+                  DECODE(NVL(QTYB,0.0),0.0,NVL(PRICE,0.0)*NVL(QTY,0.0),NVL(PRICE,0.0)*NVL(QTYB,0.0))
+             FROM MTRDOC,PROD
+            WHERE MTRDOC.PROD#=PROD.PROD#(+)
+              AND OPRDATE BETWEEN to_date(:edatemin,'dd/mm/rr') AND to_date(:edatemax,'dd/mm/rr')
+              AND STATUS  BETWEEN :status1 AND :status2
+              AND OPRTYPE=1
+              AND (OBJMAIN=:dept1 OR :dept1=0)
+              AND OPR# in (501)
+              AND MTRDOC.PROD# NOT IN(6101098,6101099)
+              AND PRODGR=:prodgr1
+              AND OBJCORR!=3734
+            ORDER BY OBJMAIN,MTRDOC.PROD#,DOCNO1,DOCNO;
+
+ EXEC SQL OPEN CUR_MDOC;
+  end_union=0;
+  fest_rec=1;
+  for(;!end_union;)
+   {
+    infoStaffz(0.0f);
+
+    EXEC SQL FETCH CUR_MDOC INTO :status,:objmain,:objcorr,:suplreg,:rec,
+                                 :docno1,:docno,:docdates,:prod,
+                                 :qtyd  ,:qty  ,:qtyb   ,:price,:sumDB ;
+
+  if(!sqlca.sqlcode)
+     {
+      if(fest_rec){prod_old=prod;objmain_old=objmain,fest_rec=0;}
+       if(objmain!=objmain_old)
+        {
+
+    sprintf(stroka,"Усього по коду продукцў∙ %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     prod_old,"",double_str(sumqd_p),double_str(sumqbd_p),double_str(sumq_p),double_str(sumqb_p),"",currenc2(summ_p));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+    sprintf(stroka,"Усього по коду складу    %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     objmain_old,"",double_str(sumqd_sk),double_str(sumqbd_sk),double_str(sumq_sk),double_str(sumqb_sk),"",currenc2(summ_sk));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+    prod_old=prod;
+    sumqbd_p=0.0;
+    sumqd_p =0.0;
+    sumq_p  =0.0;
+    sumqb_p =0.0;
+    summ_p=0.0;
+
+    objmain_old=objmain;
+    sumqbd_sk=0.0;
+    sumqd_sk =0.0;
+    sumq_sk  =0.0;
+    sumqb_sk =0.0;
+    summ_sk=0.0;
+        }
+
+       if(prod!=prod_old)
+        {
+    sprintf(stroka,"Усього по коду продукцў∙ %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     prod_old,"",double_str(sumqd_p),double_str(sumqbd_p),double_str(sumq_p),double_str(sumqb_p),"",currenc2(summ_p));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+    prod_old=prod;
+    sumqbd_p=0.0;
+    sumqd_p =0.0;
+    sumq_p  =0.0;
+    sumqb_p =0.0;
+    summ_p=0.0;
+
+        }
+
+   sumqb_p+=qtyb;
+   sumqb_sk+=qtyb;
+   strcpy(docdate,strlenset(docdates,8));
+   sprintf(stroka," %1.0lu %6.0lu %6.0lu %8.0lu %6.0lu %9.0lu %8.8s %9.0lu %10.10s %10.10s %4.4s %16.16s %16.16s %16.16s %16.16s %16.16s %16.16s ",
+                   status,objmain,objcorr,suplreg,docno1,docno,docdate,prod,"","","",double_str(qtyd),"",
+                   double_str(qty),double_str(qtyb),currenc2(price),currenc2(sumDB));
+   fprintf(report,"%s\n",stroka);
+
+ EXEC SQL DECLARE CUR_MSUM CURSOR FOR
+          SELECT NVL(OPR#,0),TO_CHAR(OPRDATE,'DD/MM/RR'),ACCT_DB,ACCT_CR,SUM
+            FROM MTRSUM
+           WHERE REC#=:rec
+           ORDER BY OPR#;
+
+ EXEC SQL OPEN CUR_MSUM;
+  end_union1=0;
+  for(;!end_union1;)
+    {
+     infoStaffz(0.0f);
+
+     EXEC SQL FETCH CUR_MSUM INTO :opr,:oprdates,:acctdb,:acctcr,:sum ;
+
+     if(!sqlca.sqlcode)
+      {
+      strcpy(oprdate,strlenset(oprdates,8));
+      sprintf(stroka," %189.189s %3.0lu %8.8s %5.0lu %5.0lu %16.16s ",
+                         "",opr,oprdate,acctdb,acctcr,currenc2(sum));
+      fprintf(report,"%s\n",stroka);
+
+      summ_p+=sum;
+      summ_sk+=sum;
+      summ_pp+=sum;
+
+        }
+     else
+      {
+        end_union1=1;
+        EXEC SQL CLOSE CUR_MSUM;
+      }
+}
+
+
+ EXEC SQL DECLARE CUR_SDOC CURSOR FOR
+          SELECT TO_CHAR(NVL(FACTDATE,''),'dd/mm/rr'),SUBSTR(SUPLDOC,1,10),SUBSTR(TRANSNO,1,10),NVL(LOT#,0),QTYBD,QTY,QTYB,QTYD
+            FROM SUPLDOC
+           WHERE WAREDEPT=:objmain
+             AND OPRDATE BETWEEN to_date(:edatemin,'dd/mm/rr') AND to_date(:edatemax,'dd/mm/rr')
+             AND REC#=:rec
+           ORDER BY TRANSNO,SUPLDOC;
+
+ EXEC SQL OPEN CUR_SDOC;
+
+   infoStaffz(0.0f);
+   for(totInd=0L,selectFlag=0;!selectFlag;)
+    {
+     EXEC SQL FETCH CUR_SDOC INTO :factdates_t ,:supldocs_t,:transnos_t,:lot_t,:qtybd_t,
+                                  :qtyv_t      ,:qtybv_t   ,:qtydv_t;
+     selectFlag=(int)sqlca.sqlcode;
+     arrRecNum=(int)(sqlca.sqlerrd[2]-totInd);
+     for(arrInd=0;arrInd<arrRecNum;arrInd++,totInd++)
+     {
+      strcpy(supldoc,strlenset(supldocs_t[arrInd],10));
+      strcpy(transno,strlenset(transnos_t[arrInd],10));
+      strcpy(factdate,strlenset(factdates_t[arrInd],8));
+      lot  =lot_t  [arrInd];
+      qtybd=qtybd_t[arrInd];
+      qtyv=qtyv_t[arrInd];
+      qtybv=qtybv_t[arrInd];
+      qtydv=qtydv_t[arrInd];
+      sprintf(stroka," %41.41s %8.8s %9.9s %10.10s %10.10s %4.0lu %16.16s %16.16s %16.16s %16.16s ",
+                    "",factdate,"",supldoc,transno,lot,double_str(qtydv),double_str(qtybd),double_str(qtyv),double_str(qtybv));
+      fprintf(report,"%s\n",stroka);
+      sumqbd_pp+=qtybd;
+      sumqd_pp +=qtydv;
+      sumq_pp  +=qtyv;
+/*      sumqb_pp +=qtybv; */
+
+      sumqbd_p+=qtybd;
+      sumqd_p +=qtydv;
+      sumq_p  +=qtyv;
+/*      sumqb_p +=qtybv; */
+
+      sumqbd_sk+=qtybd;
+      sumqd_sk +=qtydv;
+      sumq_sk  +=qtyv;
+
+     }
+   }
+     EXEC SQL CLOSE CUR_SDOC;
+    fprintf(report,"%s\n",forma[10]);
+
+      }
+     else
+      {
+        end_union=1;
+        EXEC SQL CLOSE CUR_MDOC;
+      }
+}
+
+    sprintf(stroka,"Усього по коду продукцў∙ %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     prod,"",double_str(sumqd_p),double_str(sumqbd_p),double_str(sumq_p),double_str(sumqb_p),"",currenc2(summ_p));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+    sprintf(stroka,"Усього по коду складу    %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     objmain,"",double_str(sumqd_sk),double_str(sumqbd_sk),double_str(sumq_sk),double_str(sumqb_sk),"",currenc2(summ_sk));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+    sprintf(stroka,"Усього %81.81s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     "",double_str(sumqd_pp),double_str(sumqbd_pp),double_str(sumq_pp),double_str(sumqb_pp),"",currenc2(summ_pp));
+    fprintf(report,"%s\n",forma[9]);
+    fprintf(report,"%s\n\n",stroka);
+
+
+EXEC SQL COMMIT WORK;
+fprintf(report,"2");
+sound(50,6000);
+return(1);
+errexit: dberror();
+   }
+
+int for_ras1()
+ {
+  char stroka[250];
+  int end_union;
+  int end_union1;
+  double summ_p=0.0,sumqbd_p=0.0;
+  double sumqb_p=0.0,sumqd_p=0.0,sumq_p=0.0;
+
+  double summ_pp=0.0,sumqbd_pp=0.0;
+  double sumqb_pp=0.0,sumqd_pp=0.0,sumq_pp=0.0;
+  long totInd;
+  long tip_old,fest_rec;
+  int  arrInd;
+  int  arrRecNum;
+  int  selectFlag=0;
+  status1=atol(status11);
+  status2=atol(status22);
+  dept1=atol(dept11);
+  prodgr1=atol(prodgr11);
+  time(&tstart);
+           if(edatecmp("31/12/2001",edatemin)>=0)  {
+                   sayerr("За данный период данных нет"); 
+                   return(0);
+                                                      }
+
+
+     fprintf(report,"M2G");
+     fprintf(report,"\t\t\t\tВ Ў Д О М Ў С Т Ь   НЕВЎДФАКТУРОВАНИХ П О С Т А Ч А Н Ь \n");
+     fprintf(report,"\t\t\t\tза перўод з %s по %s \n",edatemin,edatemax);
+     fprintf(report,"\t\t\t\tстатус    з %1.0lu  по  %1.0lu \n",status1,status2);
+     if(dept1==0)
+      fprintf(report,"\t\t\t\tпо усўм пўдроздўлам \n");
+     else
+     fprintf(report,"\t\t\t\tпўдроздўл %6.0lu \n",dept1);
+
+     fprintf(report,"\t\t\t\t( Матерўали ) \n\n");
+     fprintf(report,"H\n");
+     for(i=0;i<8;i++)
+      { fprintf(report,"%s\n",forma[i]); }
+
+ EXEC SQL DECLARE CUR_MDOC1 CURSOR FOR
+           SELECT trunc(MTRDOC.PROD#,-6)/1000000,
+                  NVL(STATUS,0),OBJMAIN,NVL(OBJCORR,0),NVL(SUPLREG,0),
+                  REC#,NVL(DOCNO1,0),DOCNO,
+                  TO_CHAR(DOCDATE,'dd/mm/rr'),MTRDOC.PROD#,NVL(QTYD,0.0),
+                  NVL(QTY,0.0),NVL(QTYB,0.0),NVL(PRICE,0.0),
+                  DECODE(NVL(QTYB,0.0),0.0,NVL(PRICE,0.0)*NVL(QTY,0.0),NVL(PRICE,0.0)*NVL(QTYB,0.0))
+             FROM MTRDOC,PROD
+            WHERE MTRDOC.PROD#=PROD.PROD#(+)
+              AND OPRDATE BETWEEN to_date(:edatemin,'dd/mm/rr') AND to_date(:edatemax,'dd/mm/rr')
+              AND STATUS  BETWEEN :status1 AND :status2
+              AND OPRTYPE=1
+              AND (OBJMAIN=:dept1 OR :dept1=0)
+              AND OPR# in (501)
+              AND MTRDOC.PROD# NOT IN(6101098,6101099)
+              AND PRODGR=:prodgr1
+              AND OBJCORR!=3734
+            ORDER BY trunc(MTRDOC.PROD#,-6)/1000000,OBJMAIN,DOCNO1,DOCNO;
+
+ EXEC SQL OPEN CUR_MDOC1;
+  end_union=0;
+  fest_rec=1;
+  for(;!end_union;)
+   {
+    infoStaffz(0.0f);
+
+    EXEC SQL FETCH CUR_MDOC1 INTO :tip,:status,:objmain,:objcorr,:suplreg,:rec,
+                                 :docno1,:docno,:docdates,:prod,
+                                 :qtyd  ,:qty  ,:qtyb   ,:price,:sumDB ;
+
+  if(!sqlca.sqlcode)
+     {
+      if(fest_rec){tip_old=tip;fest_rec=0;}
+       if(tip!=tip_old)
+        {
+
+    sprintf(stroka,"Усього по бал.рахунку    %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     tip_old,"",double_str(sumqd_p),double_str(sumqbd_p),double_str(sumq_p),double_str(sumqb_p),"",currenc2(summ_p));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+    tip_old=tip;
+    sumqbd_p=0.0;
+    sumqd_p =0.0;
+    sumq_p  =0.0;
+    sumqb_p =0.0;
+    summ_p=0.0;
+
+    }
+
+   sumqb_p+=qtyb;
+   strcpy(docdate,strlenset(docdates,8));
+   sprintf(stroka," %1.0lu %6.0lu %6.0lu %8.0lu %6.0lu %9.0lu %8.8s %9.0lu %10.10s %10.10s %4.4s %16.16s %16.16s %16.16s %16.16s %16.16s %16.16s ",
+                   status,objmain,objcorr,suplreg,docno1,docno,docdate,prod,"","","",double_str(qtyd),"",
+                   double_str(qty),double_str(qtyb),currenc2(price),currenc2(sumDB));
+   fprintf(report,"%s\n",stroka);
+
+ EXEC SQL DECLARE CUR_MSUM1 CURSOR FOR
+          SELECT NVL(OPR#,0),TO_CHAR(OPRDATE,'DD/MM/RR'),ACCT_DB,ACCT_CR,SUM
+            FROM MTRSUM
+           WHERE REC#=:rec
+           ORDER BY OPR#;
+
+ EXEC SQL OPEN CUR_MSUM1;
+  end_union1=0;
+  for(;!end_union1;)
+    {
+     infoStaffz(0.0f);
+
+     EXEC SQL FETCH CUR_MSUM1 INTO :opr,:oprdates,:acctdb,:acctcr,:sum ;
+
+     if(!sqlca.sqlcode)
+      {
+      strcpy(oprdate,strlenset(oprdates,8));
+      sprintf(stroka," %189.189s %3.0lu %8.8s %5.0lu %5.0lu %16.16s ",
+                         "",opr,oprdate,acctdb,acctcr,currenc2(sum));
+      fprintf(report,"%s\n",stroka);
+
+      summ_p+=sum;
+      summ_pp+=sum;
+
+        }
+     else
+      {
+        end_union1=1;
+        EXEC SQL CLOSE CUR_MSUM1;
+      }
+}
+
+
+ EXEC SQL DECLARE CUR_SDOC1 CURSOR FOR
+          SELECT TO_CHAR(NVL(FACTDATE,''),'dd/mm/rr'),SUBSTR(SUPLDOC,1,10),SUBSTR(TRANSNO,1,10),NVL(LOT#,0),QTYBD,QTY,QTYB,QTYD
+            FROM SUPLDOC
+           WHERE WAREDEPT=:objmain
+             AND OPRDATE BETWEEN to_date(:edatemin,'dd/mm/rr') AND to_date(:edatemax,'dd/mm/rr')
+             AND REC#=:rec
+           ORDER BY TRANSNO,SUPLDOC;
+
+ EXEC SQL OPEN CUR_SDOC1;
+
+   infoStaffz(0.0f);
+   for(totInd=0L,selectFlag=0;!selectFlag;)
+    {
+     EXEC SQL FETCH CUR_SDOC1 INTO :factdates_t ,:supldocs_t,:transnos_t,:lot_t,:qtybd_t,
+                                  :qtyv_t      ,:qtybv_t   ,:qtydv_t;
+     selectFlag=(int)sqlca.sqlcode;
+     arrRecNum=(int)(sqlca.sqlerrd[2]-totInd);
+     for(arrInd=0;arrInd<arrRecNum;arrInd++,totInd++)
+     {
+      strcpy(supldoc,strlenset(supldocs_t[arrInd],10));
+      strcpy(transno,strlenset(transnos_t[arrInd],10));
+      strcpy(factdate,strlenset(factdates_t[arrInd],8));
+      lot  =lot_t  [arrInd];
+      qtybd=qtybd_t[arrInd];
+      qtyv=qtyv_t[arrInd];
+      qtybv=qtybv_t[arrInd];
+      qtydv=qtydv_t[arrInd];
+      sprintf(stroka," %41.41s %8.8s %9.9s %10.10s %10.10s %4.0lu %16.16s %16.16s %16.16s %16.16s ",
+                    "",factdate,"",supldoc,transno,lot,double_str(qtydv),double_str(qtybd),double_str(qtyv),double_str(qtybv));
+      fprintf(report,"%s\n",stroka);
+      sumqbd_pp+=qtybd;
+      sumqd_pp +=qtydv;
+      sumq_pp  +=qtyv;
+/*      sumqb_pp +=qtybv; */
+
+      sumqbd_p+=qtybd;
+      sumqd_p +=qtydv;
+      sumq_p  +=qtyv;
+/*      sumqb_p +=qtybv; */
+
+
+     }
+   }
+     EXEC SQL CLOSE CUR_SDOC1;
+    fprintf(report,"%s\n",forma[10]);
+
+      }
+     else
+      {
+        end_union=1;
+        EXEC SQL CLOSE CUR_MDOC1;
+      }
+}
+
+    sprintf(stroka,"Усього по бал.рахунку    %8.0lu %54.54s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     tip,"",double_str(sumqd_p),double_str(sumqbd_p),double_str(sumq_p),double_str(sumqb_p),"",currenc2(summ_p));
+    fprintf(report,"%s\n",forma[8]);
+    fprintf(report,"%s\n\n",stroka);
+
+
+    sprintf(stroka,"Усього %81.81s %16.16s %16.16s %16.16s %16.16s %58.58s %16.16s",
+                     "",double_str(sumqd_pp),double_str(sumqbd_pp),double_str(sumq_pp),double_str(sumqb_pp),"",currenc2(summ_pp));
+    fprintf(report,"%s\n",forma[9]);
+    fprintf(report,"%s\n\n",stroka);
+
+
+EXEC SQL COMMIT WORK;
+fprintf(report,"2");
+sound(50,6000);
+return(1);
+errexit: dberror();
+   }
+
+int   zapPnl(){
+  char  buf[3];
+  int   i, wnd, statusWnd;
+  char *panel[8]={
+       "╒═════════════════════════════╤════════════════════════════╕",
+       "│ Период расчета :            │ 00:00:00  -  Вpемя pасчета │",
+       "│ c          по               │                            │",
+       "│ Статус :                    │                            │",
+       "│ с          по               │ [ ]──────── Запpос  к БД  │",
+       "│ Подразделение:              │                            │",
+       "│ Группа материала:           │                            │",
+       "╘══════════════════════════════════════════════════════════╛"
+       };
+
+
+      vcstart(SAVESCRN);
+
+      CURSON;
+      VC_VIO = 1;
+      VCROW = 25;
+      VCCOL = 80;
+
+      /* Инициализация StatusLine                                               */
+      statusWnd = wxopen(24,00,24,79,NULL,ACTIVE+NOADJ,0,0);
+      setswdo(statusWnd);
+      /* Откpыть окно для запpоса паpаметpов pасчета                            */
+      wnd = wxxopen(8,10,15,69,NULL,ACTIVE+NOADJ+CURSOR,0,0,8,-1);
+
+      for (i=0; i<8; i++) atsay(i,0,panel[i]);
+
+     /* Текущая дата                       */
+      sysdate(ecurdate);
+      e2ldate(ecurdate,elcurdate);
+      sscanf(elcurdate,"%d/%d/%d",&i,&month,&year);
+
+      sprintf(edatemin,"01/%.2d/%.2d",month,((year-1900)>=100)?(year-2000):(year-1900));
+      sprintf(edatemax,"%.2d/%.2d/%.2d",cldrdays(year,month),month,((year-1900)>=100)?(year-2000):(year-1900));
+
+      xatgetc(2,5,edatemin,"99/99/99",datetest,
+	    "Введите дату начала пеpиода pасчета (дд/мм/гг).",
+	     NULL,113,31,-1,STRING+FLDBLANK,NULL);
+
+
+      xatgetc(2,18,edatemax,"99/99/99",datetest,
+	     "Введите дату окончания пеpиода pасчета (дд/мм/гг).",
+	     NULL,113,31,-1,STRING+FLDBLANK,NULL);
+
+      xatgetc(4,5,status11,"9",NULL,
+                          "Введите начальный номеp статуса;",
+                           NULL,113,31,-1,STRING+FLDBLANK,NULL);
+
+      xatgetc(4,18,status22,"9",NULL,
+                          "Введите конечный номеp статуса;",
+                           NULL,113,31,-1,STRING+FLDBLANK,NULL);
+
+      xatgetc(5,18,dept11,"999999",NULL,
+                          "Введите номеp подразделения <ENTER>-по всем складам;",
+                           NULL,113,31,-1,STRING+FLDBLANK,NULL);
+
+        xatgetc(6,21,prodgr11,"99",prodgrtst,
+                          "Введите группу материала(6-сырье;7-материалы);",
+                           NULL,113,31,-1,STRING+FLDBLANK,NULL);
+
+if (xreadgets(vcdgt) == ESC){
+      clrgets(vcdgt);
+      vcend(CLOSE);
+      return(0);
+  }
+
+  todate(edatemin,datemin);
+  todate(edatemax,datemax);
+  ((year-1900)>=100)?(year = 2000 + atoi(edatemin+6)):(year = 1900 + atoi(edatemin+6));
+  month = atoi(strncpy(buf,edatemin+3,2));
+
+
+  statsay("Ждите, идет pасчет выходной фоpмы ...",DEFAULT);
+  if(atol(prodgr11)==6)
+   for_ras();
+  else
+   for_ras1();
+  return(1);
+
+}
+
+static int prodgrtst(TEXT *tmpfld)
+{
+   if(atol(tmpfld)==6 || atol(tmpfld)==7)return GOOD;
+      sound(200,800); return BAD ;
+}
+
+void infoStaffz(float num ){
+  size_t   HH,MM,SS;
+  double dt;
+  time( &tend );
+  dt = difftime( tend, tstart );
+  HH = (size_t)(dt/3600.0);
+  MM = (size_t)((dt - HH*3600)/60.0);
+  SS = (size_t)(dt - 3600*HH - 60*MM);
+  gotoxy(9,42);  printf("%0.2u:%0.2u:%0.2u",HH,MM,SS);
+}
